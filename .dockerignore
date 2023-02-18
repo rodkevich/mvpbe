@@ -1,0 +1,9 @@
+README.md
+docs/*
+
+# all dot+ items
+.*
+# exclude
+!.github
+!.gitignore
+!.dockerignore
