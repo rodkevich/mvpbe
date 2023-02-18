@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 
 	"github.com/rodkevich/mvpbe/config"
 )
@@ -17,6 +18,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	validator.New()
 	r.Get("/config", func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(cfg)
 		if err != nil {
