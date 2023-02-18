@@ -7,26 +7,32 @@ on:
     branches: [ develop ]
 
 jobs:
-  static-check:
+  static-checks:
     name: Code static check
     runs-on: ubuntu-latest
     steps:
+      - name: Install Go
+        uses: actions/setup-go@v3                #https://github.com/actions/setup-go
+        with:
+          go-version: '1.19.x'
       - name: Check out directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3                #https://github.com/actions/checkout
         with:
           fetch-depth: 0
       - name: lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3   #https://github.com/golangci/golangci-lint-action
 
-  test:
-    name: tests
+  unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: '1.19.x'
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Test
         run: go test ./...
