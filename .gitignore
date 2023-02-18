@@ -20,3 +20,4 @@
 !.github
 !.gitignore
 !.dockerignore
+!.pre-commit-config.yaml
