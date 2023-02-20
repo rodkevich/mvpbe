@@ -12,7 +12,6 @@ import (
 
 	"github.com/rodkevich/mvpbe/internal/domain/sample"
 	"github.com/rodkevich/mvpbe/internal/server"
-	"github.com/rodkevich/mvpbe/internal/serverenv"
 	"github.com/rodkevich/mvpbe/internal/setup"
 )
 
@@ -26,16 +25,17 @@ func main() {
 		}
 	}()
 
-	err := runApplication(ctx)
+	// run app
+	err := runSampleApplication(ctx)
 	done()
-
 	if err != nil {
 		log.Println(err)
 	}
+
 	log.Println("successful shutdown")
 }
 
-func runApplication(ctx context.Context) error {
+func runSampleApplication(ctx context.Context) error {
 	// init config
 	err := godotenv.Load()
 	if err != nil {
@@ -54,7 +54,7 @@ func runApplication(ctx context.Context) error {
 	}
 
 	// set tasks to do on server shut down
-	defer func(env *serverenv.ServerEnv, ctx context.Context) {
+	defer func(env *server.Env, ctx context.Context) {
 		err := env.ShutdownJobs(ctx)
 		if err != nil {
 			fmt.Printf("env.ShutdownJobs: %s", err.Error())
@@ -68,7 +68,7 @@ func runApplication(ctx context.Context) error {
 
 	srv, err := server.New(cfg.HTTP.Port)
 	if err != nil {
-		return fmt.Errorf("server.New: %w", err)
+		return fmt.Errorf("server.NewEnv: %w", err)
 	}
 
 	log.Println("server listening", "port", cfg.HTTP.Port)

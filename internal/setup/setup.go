@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/rodkevich/mvpbe/internal/serverenv"
+	"github.com/rodkevich/mvpbe/internal/server"
 	"github.com/rodkevich/mvpbe/pkg/database"
 )
 
@@ -15,8 +15,8 @@ type DatabaseConfigProvider interface {
 }
 
 // Setup ..
-func Setup(ctx context.Context, cfg interface{}) (*serverenv.ServerEnv, error) {
-	var serverEnvOpts []serverenv.Option
+func Setup(ctx context.Context, cfg interface{}) (*server.Env, error) {
+	var serverEnvOpts []server.Option
 
 	if provider, ok := cfg.(DatabaseConfigProvider); ok {
 		log.Println("configuring database")
@@ -30,7 +30,7 @@ func Setup(ctx context.Context, cfg interface{}) (*serverenv.ServerEnv, error) {
 			return nil, fmt.Errorf("unable to connect to database: %w", err)
 		}
 
-		serverEnvOpts = append(serverEnvOpts, serverenv.WithDatabase(db))
+		serverEnvOpts = append(serverEnvOpts, server.WithDatabase(db))
 	}
-	return serverenv.New(ctx, serverEnvOpts...), nil
+	return server.NewEnv(ctx, serverEnvOpts...), nil
 }

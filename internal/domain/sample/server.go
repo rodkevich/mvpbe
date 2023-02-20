@@ -10,17 +10,16 @@ import (
 	"github.com/rodkevich/mvpbe/internal/domain/sample/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
-	"github.com/rodkevich/mvpbe/internal/serverenv"
 )
 
 // Server representation
 type Server struct {
 	config *Config
-	env    *serverenv.ServerEnv
+	env    *server.Env
 }
 
 // NewServer constructor
-func NewServer(cfg *Config, env *serverenv.ServerEnv) (*Server, error) {
+func NewServer(cfg *Config, env *server.Env) (*Server, error) {
 	if env.Database() == nil {
 		return nil, fmt.Errorf("server requires a database to be presented in the serverenv")
 	}
