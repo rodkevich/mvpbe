@@ -1,2 +1,2 @@
 # create env file for settings
-cp ../config/testdata/example.env ../.env
+cp ../examples/example.env ../.env

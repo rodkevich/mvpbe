@@ -6,8 +6,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-// API configuration
-type API struct {
+// HTTP configuration
+type HTTP struct {
 	Name              string        `default:"mvp_service"`
 	Host              string        `default:"0.0.0.0"`
 	Port              string        `default:"3080"`
@@ -18,10 +18,10 @@ type API struct {
 	RequestLog        bool          `default:"false"`
 }
 
-// APIConfig processes env to api configuration
-func APIConfig() API {
-	var api API
-	envconfig.MustProcess("MVP_API", &api)
+// HTTPConfig processes env to api configuration
+func HTTPConfig() HTTP {
+	var api HTTP
+	envconfig.MustProcess("API", &api)
 
 	return api
 }
