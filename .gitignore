@@ -24,3 +24,5 @@
 
 # compiled bynaries
 /bin/
+# tests coverage reports
+.coverage
