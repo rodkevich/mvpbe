@@ -6,20 +6,20 @@ import (
 	"net/http"
 )
 
-// ResponseBase ...
+// ResponseBase to render further
 type ResponseBase struct {
 	Data interface{} `json:"data"`
 	Meta MetaData    `json:"meta,omitempty"`
 }
 
-// MetaData ...
+// MetaData to attach to response
 type MetaData struct {
 	Size  int `json:"size"`
 	Total int `json:"total"`
 }
 
-// SendJSON ...
-func SendJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+// RenderJSON payload
+func RenderJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.WriteHeader(statusCode)
 
 	if payload == nil {
