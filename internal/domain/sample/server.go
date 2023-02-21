@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/rodkevich/mvpbe/internal/domain/sample/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
@@ -31,7 +32,7 @@ func NewServer(cfg *Config, env *server.Env) (*Server, error) {
 }
 
 // Routes initialization
-func (s *Server) Routes(ctx context.Context) *chi.Mux {
+func (s *Server) Routes(_ context.Context) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -44,6 +45,7 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 		router.Get("/health", server.HandleHealth(s.env.Database()))
 		router.Get("/liveness", handler.LivenessHandler())
 		router.Get("/databases", handler.AllDatabases())
+		router.Handle("/metrics", promhttp.Handler())
 	})
 
 	return r
