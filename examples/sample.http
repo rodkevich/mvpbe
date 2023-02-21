@@ -1,5 +1,5 @@
 ### Check response status is 200
-GET http://localhost:8080/api/v1/sample/metrics
+GET http://localhost:{{http_port}}/api/v1/sample/metrics
 
 > {%
 client.test("Request executed successfully", function() {
@@ -8,7 +8,7 @@ client.test("Request executed successfully", function() {
 %}
 
 ### Check response status and content-type
-GET http://localhost:8080/api/v1/sample/databases
+GET http://localhost:{{http_port}}/api/v1/sample/databases
 
 > {%
 client.test("Request executed successfully", function() {
@@ -22,7 +22,7 @@ client.test("Response content-type is json", function() {
 %}
 
 ### Check response body to contain status
-GET http://localhost:8080/api/v1/sample/health
+GET http://localhost:{{http_port}}/api/v1/sample/health
 
 > {%
 client.test("Headers option exists", function() {
