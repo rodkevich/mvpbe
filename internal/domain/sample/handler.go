@@ -27,7 +27,7 @@ func NewHandler(cmd UseCase) *Handler {
 // LivenessHandler to check api response
 func (h *Handler) LivenessHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		api.SendJSON(w, http.StatusOK, nil)
+		api.RenderJSON(w, http.StatusOK, nil)
 	}
 }
 
@@ -36,6 +36,7 @@ func (h *Handler) AllDatabases() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		data, _ := h.usecase.AllDatabases(ctx)
+
 		resp := api.ResponseBase{
 			Data: data,
 			Meta: api.MetaData{
@@ -43,6 +44,6 @@ func (h *Handler) AllDatabases() func(w http.ResponseWriter, r *http.Request) {
 				Total: len(data),
 			},
 		}
-		api.SendJSON(w, http.StatusOK, resp)
+		api.RenderJSON(w, http.StatusOK, resp)
 	}
 }
