@@ -21,7 +21,7 @@ type HTTP struct {
 // HTTPConfig processes env to api configuration
 func HTTPConfig() HTTP {
 	var api HTTP
-	envconfig.MustProcess("API", &api)
+	envconfig.MustProcess("HTTP", &api)
 
 	return api
 }
