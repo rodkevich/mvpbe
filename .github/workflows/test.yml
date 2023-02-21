@@ -8,7 +8,6 @@ on:
 
 jobs:
   static-checks:
-
     name: Code static check
     runs-on: ubuntu-latest
     steps:
@@ -22,9 +21,7 @@ jobs:
           fetch-depth: 0
       - name: lint
         uses: golangci/golangci-lint-action@v3   #https://github.com/golangci/golangci-lint-action
-
   unit-tests:
-
     name: Unit tests
     runs-on: ubuntu-latest
     services:
@@ -52,4 +49,4 @@ jobs:
         with:
           fetch-depth: 0
       - name: Test
-        run: go test ./...
+        run: go test -shuffle=on -count=1 -timeout=5m -race ./...
