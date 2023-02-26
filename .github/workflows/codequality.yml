@@ -1,8 +1,13 @@
 name: 'code quality'
 
 on:
+  workflow_dispatch: {}
   schedule:
     - cron: '0 */6 * * *'
+
+  permissions:
+    security-events: write
+    actions: read
 
 jobs:
   analyze:
