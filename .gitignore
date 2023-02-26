@@ -27,3 +27,4 @@
 /bin/
 # tests coverage reports
 .coverage
+!/builders/docker/.env
