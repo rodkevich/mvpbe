@@ -27,7 +27,7 @@ func NewHandler(cmd UseCase) *Handler {
 // LivenessHandler to check api response
 func (h *Handler) LivenessHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		api.RenderJSON(w, http.StatusOK, nil)
+		api.Status(w, http.StatusOK)
 	}
 }
 
