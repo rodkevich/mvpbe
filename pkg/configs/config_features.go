@@ -11,7 +11,7 @@ type Features struct {
 // to feature flags configuration
 func FeaturesConfig() Features {
 	var featureFlags Features
-	envconfig.MustProcess("MVP_FEATURE", &featureFlags)
+	envconfig.MustProcess("FEATURE", &featureFlags)
 
 	return featureFlags
 }
