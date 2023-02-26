@@ -1,4 +1,13 @@
-### Check response status is 200
+### Check liveness response
+GET http://localhost:{{http_port}}/api/v1/sample/liveness
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Check metrics response
 GET http://localhost:{{http_port}}/api/v1/sample/metrics
 
 > {%
@@ -7,7 +16,7 @@ client.test("Request executed successfully", function() {
 });
 %}
 
-### Check response status and content-type
+### Check databases response
 GET http://localhost:{{http_port}}/api/v1/sample/databases
 
 > {%
@@ -19,13 +28,18 @@ client.test("Response content-type is json", function() {
   var type = response.contentType.mimeType;
   client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
 });
+
+client.test("Headers option exists", function() {
+  client.assert(response.body.hasOwnProperty("data"), "Cannot find 'data' option in response");
+});
 %}
 
-### Check response body to contain status
+
+### Check health response
 GET http://localhost:{{http_port}}/api/v1/sample/health
 
 > {%
-client.test("Headers option exists", function() {
-  client.assert(response.body.hasOwnProperty("status"), "Cannot find 'status' option in response");
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
 });
 %}
