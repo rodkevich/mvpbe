@@ -21,6 +21,7 @@
 !.gitignore
 !.dockerignore
 !.pre-commit-config.yaml
+!.golangci.yaml
 
 # compiled bynaries
 /bin/
