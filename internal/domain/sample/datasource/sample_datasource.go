@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
+
+	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
 	"github.com/rodkevich/mvpbe/pkg/database"
 )
 
@@ -19,6 +22,24 @@ func New(db *database.DB) *SampleDB {
 	}
 }
 
+func (r *SampleDB) InsertExampleTrx(ctx context.Context, it *model.SampleItem) error {
+	// panic("not implemented yet")
+	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		sql := `
+			INSERT INTO
+				Sample_Item
+				(start_timestamp, end_timestamp, status) 
+			VALUES 
+				($1, $2, $3)
+		`
+		_, err := tx.Exec(ctx, sql, it.StartTime, it.FinishTime, it.Status)
+		if err != nil {
+			return fmt.Errorf("InsertExampleTrx failed: %w", err)
+		}
+		return nil
+	})
+}
+
 // Readiness of sample database
 func (r *SampleDB) Readiness() error {
 	return r.db.Pool.Ping(context.Background())
@@ -26,8 +47,11 @@ func (r *SampleDB) Readiness() error {
 
 // AllDatabases query for all db names
 func (r *SampleDB) AllDatabases(ctx context.Context) ([]string, error) {
-	sql := `SELECT datname FROM pg_database;`
-
+	const sql = `
+		SELECT 
+		    datname 
+		FROM 
+		    pg_database;`
 	rows, err := r.db.Pool.Query(ctx, sql)
 	if err != nil {
 		fmt.Printf("Pool.Query: %s", err)
