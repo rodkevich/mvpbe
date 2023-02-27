@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-// WithErrors ...
-func WithErrors(w http.ResponseWriter, statusCode int, errors []string) {
+// Errors ...
+func Errors(w http.ResponseWriter, statusCode int, errors []string) {
 	w.WriteHeader(statusCode)
 
 	if errors == nil {
@@ -26,8 +26,8 @@ func WithErrors(w http.ResponseWriter, statusCode int, errors []string) {
 	write(w, data)
 }
 
-// WithError ...
-func WithError(w http.ResponseWriter, statusCode int, message string) {
+// Error ...
+func Error(w http.ResponseWriter, statusCode int, message string) {
 	w.WriteHeader(statusCode)
 
 	var p map[string]string

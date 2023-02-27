@@ -6,39 +6,55 @@ import (
 	"log"
 
 	"github.com/rodkevich/mvpbe/internal/server"
-	"github.com/rodkevich/mvpbe/pkg/configs"
+	"github.com/rodkevich/mvpbe/pkg/api/v1"
 	"github.com/rodkevich/mvpbe/pkg/database"
+	"github.com/rodkevich/mvpbe/pkg/features"
+	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
+	"github.com/rodkevich/mvpbe/pkg/redis"
 )
 
 // DatabaseConfigProvider ...
-type DatabaseConfigProvider interface{ DatabaseConfig() *database.Config }
+type DatabaseConfigProvider interface{ DatabaseConfig() *database.Database }
 
 // CacheConfigProvider ...
-type CacheConfigProvider interface{ CacheConfig() *configs.Cache }
+type CacheConfigProvider interface{ CacheConfig() *redis.Config }
 
 // HTTPConfigProvider ...
-type HTTPConfigProvider interface{ HTTPConfig() *configs.HTTP }
+type HTTPConfigProvider interface{ HTTPConfig() *v1.Config }
 
-// FeaturesConfigProvider ...
-type FeaturesConfigProvider interface{ FeaturesConfig() *configs.Features }
+// FeaturesConfigProvider contains enabled/disabled app features
+type FeaturesConfigProvider interface{ FeaturesConfig() *features.Config }
 
-// Setup server.Env
-func Setup(ctx context.Context, cfg interface{}) (*server.Env, error) {
+// AMQPConfigProvider ...
+type AMQPConfigProvider interface{ AMQPConfig() *rabbitmq.Config }
+
+// NewEnvSetup server.Env
+func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 	var serverEnvOpts []server.Option
 
 	if provider, ok := cfg.(DatabaseConfigProvider); ok {
-		log.Println("configuring database")
+		log.Println("configuring Database")
 
-		_ = provider.DatabaseConfig() // TODO
-
-		dsl := database.ConnectionStringFromEnv()
-		p := database.PoolSettingsFromEnv()
-		db, err := database.New(ctx, dsl, p)
+		conf := provider.DatabaseConfig()
+		db, err := database.NewPool(ctx, conf.GetDSN(), conf)
 		if err != nil {
 			return nil, fmt.Errorf("unable to connect to database: %w", err)
 		}
 
 		serverEnvOpts = append(serverEnvOpts, server.WithDatabase(db))
 	}
+	if _, ok := cfg.(AMQPConfigProvider); ok {
+		log.Println("configuring AMQP")
+	}
+	if _, ok := cfg.(CacheConfigProvider); ok {
+		log.Println("configuring Cache")
+	}
+	if _, ok := cfg.(HTTPConfigProvider); ok {
+		log.Println("configuring Http")
+	}
+	if _, ok := cfg.(FeaturesConfigProvider); ok {
+		log.Println("configuring Features")
+	}
+
 	return server.NewEnv(ctx, serverEnvOpts...), nil
 }

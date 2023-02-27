@@ -29,13 +29,13 @@ func RenderJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		log.Println(err)
-		WithError(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}
 	_, err = w.Write(data)
 	if err != nil {
 		log.Println(err)
-		WithError(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+		Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		return
 	}
 }

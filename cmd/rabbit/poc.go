@@ -9,13 +9,13 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/pkg/configs"
+	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 )
 
 // docker run --hostname my-rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3.9-management
 // http://localhost:15672 for ui
 func main() {
-	cfg := configs.Amqp{URI: "amqp://guest:guest@localhost:5672"}
+	cfg := rabbitmq.Config{URI: "amqp://guest:guest@localhost:5672"}
 	conn, err := NewRabbitMQConnection(cfg)
 	if err != nil {
 		println("NewRabbitMQConnection ", err)
@@ -67,7 +67,7 @@ func main() {
 	}
 }
 
-func NewRabbitMQConnection(cfg configs.Amqp) (*amqp.Connection, error) {
+func NewRabbitMQConnection(cfg rabbitmq.Config) (*amqp.Connection, error) {
 	conn, err := amqp.Dial(cfg.URI)
 	if err != nil {
 		println(err)
@@ -83,7 +83,7 @@ type publisher struct {
 
 func (p *publisher) Publish(ctx context.Context, exchange, key string, msg amqp.Publishing) error {
 	if err := p.amqpChan.PublishWithContext(ctx, exchange, key, false, false, msg); err != nil {
-		err = fmt.Errorf("publisher Publish err: %v", err)
+		err = fmt.Errorf("publisher Publish err: %w", err)
 		println("amqpChan.PublishWithContext ", err.Error())
 
 		return err
@@ -99,7 +99,7 @@ func (p *publisher) Close() error {
 		return e
 	}
 	if err := p.amqpConn.Close(); err != nil {
-		e := fmt.Errorf("publisher amqpConn.Close err: %v", err)
+		e := fmt.Errorf("publisher amqpConn.Close err: %w", err)
 		println("amqpConn.Close ", err.Error())
 
 		return e

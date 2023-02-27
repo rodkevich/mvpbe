@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 var (
 	ItemCreated       = "CREATED"
@@ -11,8 +13,8 @@ var (
 )
 
 type SampleItem struct {
-	ID         int
-	StartTime  time.Time
-	FinishTime time.Time
-	Status     string
+	ID         int       `json:"id,omitempty,omitempty"`
+	StartTime  time.Time `json:"start_time,omitempty"`
+	FinishTime time.Time `json:"finish_time,omitempty"`
+	Status     string    `json:"status,omitempty"`
 }

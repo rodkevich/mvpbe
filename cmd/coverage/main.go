@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -18,8 +19,8 @@ import (
 )
 
 func init() {
-	outFile := "coverage.out"
-	htmlFile := ".coverage/index.html"
+	// clean fs from redundant
+	cleanFS()
 
 	if err := os.Mkdir(".coverage", os.ModePerm); err != nil {
 		log.Fatal(err)
@@ -31,21 +32,26 @@ func init() {
 		fmt.Println("could not run go test command: ", err)
 	}
 
+	outFile := "coverage.out"
+	htmlFile := ".coverage/index.html"
+	once := sync.Once{}
+
 	for {
 		if fileExists(outFile) {
-			fmt.Println("[+] out: file exists")
-			convert := exec.Command("go", "tool", "cover", "-html", outFile, "-o", htmlFile)
-			convert.Stdout = os.Stdout
-			if err := convert.Run(); err != nil {
-				fmt.Println("could not run go tool command:", err)
-				break
-			}
+			once.Do(
+				func() {
+					fmt.Println("[+] out: file exists")
+					convert := exec.Command("go", "tool", "cover", "-html", outFile, "-o", htmlFile)
+					convert.Stdout = os.Stdout
+					if err := convert.Run(); err != nil {
+						fmt.Println("could not run go tool command:", err)
+					}
+				})
 		}
 		if fileExists(htmlFile) {
 			fmt.Println("[+] index: file exists")
 			break
 		}
-		fmt.Println("[-] no required files")
 	}
 
 	fmt.Println("Test coverage html generation is finished")
@@ -56,6 +62,7 @@ func fileExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+	// check not to be directory while return
 	return !info.IsDir()
 }
 
@@ -87,12 +94,11 @@ func runCoverageApplication(ctx context.Context) error {
 	}
 
 	var cfg coverage.Config
-	envconfig.MustProcess("HTTP", &cfg.HTTP)
-
+	envconfig.MustProcess("", &cfg)
 	// set up env remotes
-	env, err := setup.Setup(ctx, &cfg)
+	env, err := setup.NewEnvSetup(ctx, &cfg)
 	if err != nil {
-		return fmt.Errorf("setup.Setup: %w", err)
+		return fmt.Errorf("setup.NewEnvSetup: %w", err)
 	}
 
 	// set tasks to do on server shut down
@@ -101,19 +107,7 @@ func runCoverageApplication(ctx context.Context) error {
 		if err != nil {
 			fmt.Printf("env.ShutdownJobs: %s", err.Error())
 		}
-
-		cmd := exec.Command("rm", "coverage.out")
-		_, err = cmd.Output()
-		if err != nil {
-			fmt.Println("could not run rm command: ", err)
-		}
-
-		cmd = exec.Command("rm", "-rf", ".coverage")
-		_, err = cmd.Output()
-		if err != nil {
-			fmt.Println("could not run rm dir command: ", err)
-		}
-
+		cleanFS()
 	}(env, ctx)
 
 	someServer, err := coverage.NewServer(&cfg, env)
@@ -128,4 +122,18 @@ func runCoverageApplication(ctx context.Context) error {
 
 	log.Println("server listening", "localhost:", cfg.HTTP.Port)
 	return srv.ServeHTTPHandler(ctx, someServer.Routes(ctx))
+}
+
+func cleanFS() {
+	cmd := exec.Command("rm", "coverage.out")
+	_, err := cmd.Output()
+	if err != nil {
+		fmt.Println("could not run rm command: ", err)
+	}
+
+	cmd = exec.Command("rm", "-rf", ".coverage")
+	_, err = cmd.Output()
+	if err != nil {
+		fmt.Println("could not run rm dir command: ", err)
+	}
 }

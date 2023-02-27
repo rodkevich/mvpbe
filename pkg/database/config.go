@@ -2,14 +2,11 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"time"
-
-	"github.com/kelseyhightower/envconfig"
 )
 
-// Config contains dsn and pool settings for postgres
-type Config struct {
+// Database contains dsn and pool settings for postgres
+type Database struct {
 	Driver            string        `envconfig:"DB_DRIVER" default:"postgres"`
 	Host              string        `envconfig:"DB_HOST" default:"0.0.0.0"`
 	Port              string        `envconfig:"DB_PORT" default:"5432"`
@@ -25,24 +22,14 @@ type Config struct {
 }
 
 // DatabaseConfig implements setup.DatabaseConfigProvider
-func (c *Config) DatabaseConfig() *Config {
+func (c *Database) DatabaseConfig() *Database {
 	return c
 }
 
-// DsnFromConfig for postgres database
-func DsnFromConfig(c *Config) string {
+// GetDSN for postgres database
+func (c *Database) GetDSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s sslmode=%s password=%s",
 		c.Host, c.Port, c.User, c.DBName, c.SSLMode, c.Password,
 	)
-}
-
-// DBSettingsFromEnv for postgres database instance
-func DBSettingsFromEnv() *Config {
-	var s Config
-	err := envconfig.Process("", &s)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	return &s
 }

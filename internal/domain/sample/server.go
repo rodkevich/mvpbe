@@ -44,6 +44,11 @@ func (s *Server) Routes(_ context.Context) *chi.Mux {
 	r.Route("/api/v1/sample", func(router chi.Router) {
 		router.Get("/health", server.HandleHealth(s.env.Database()))
 		router.Get("/liveness", handler.LivenessHandler())
+
+		router.Get("/{id}", handler.GetItemHandler())
+		router.Put("/", handler.UpdateItemHandler())
+		router.Post("/", handler.CreateItemHandler())
+
 		router.Get("/databases", handler.AllDatabases())
 		router.Handle("/metrics", promhttp.Handler())
 	})

@@ -1,10 +1,12 @@
 package sample
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
 
+	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
 	"github.com/rodkevich/mvpbe/pkg/validate"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
@@ -24,9 +26,84 @@ func NewHandler(cmd UseCase) *Handler {
 	}
 }
 
-// LivenessHandler to check api response
-func (h *Handler) LivenessHandler() func(w http.ResponseWriter, r *http.Request) {
+// GetItemHandler render an item by id
+func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			return
+		}
+		fmt.Println("==========" + id + "===========")
+
+		data, err := h.usecase.GetItem(ctx, id)
+		if err != nil {
+			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+
+		resp := api.ResponseBase{
+			Data: data,
+			Meta: api.MetaData{
+				Size:  1,
+				Total: 1,
+			},
+		}
+		api.RenderJSON(w, http.StatusOK, resp)
+	}
+}
+
+// CreateItemHandler creates new model.SampleItem
+func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		item := &model.SampleItem{}
+		err := h.usecase.CreateItem(ctx, item)
+		if err != nil {
+			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
+
+		data := map[string]interface{}{"item": item}
+		resp := api.ResponseBase{
+			Data: data,
+			Meta: api.MetaData{
+				Size:  1,
+				Total: 1,
+			},
+		}
+		api.RenderJSON(w, http.StatusOK, resp)
+	}
+}
+
+// UpdateItemHandler updates model.SampleItem
+func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		req := &api.SampleItemRequest{}
+
+		err := req.Bind(r.Body)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			return
+		}
+
+		item := &model.SampleItem{}
+		item.Status = req.Status
+
+		err = h.validate.Struct(req)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			return
+		}
+
+		err = h.usecase.UpdateItem(ctx, item)
+		if err != nil {
+			api.Error(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		api.Status(w, http.StatusOK)
 	}
 }
@@ -45,5 +122,12 @@ func (h *Handler) AllDatabases() func(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 		api.RenderJSON(w, http.StatusOK, resp)
+	}
+}
+
+// LivenessHandler to check api response
+func (h *Handler) LivenessHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		api.Status(w, http.StatusOK)
 	}
 }

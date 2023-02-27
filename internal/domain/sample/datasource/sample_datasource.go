@@ -15,15 +15,13 @@ type SampleDB struct {
 	db *database.DB
 }
 
-// New sample database
+// New sample model.SampleItem database
 func New(db *database.DB) *SampleDB {
-	return &SampleDB{
-		db: db,
-	}
+	return &SampleDB{db: db}
 }
 
-func (r *SampleDB) InsertExampleTrx(ctx context.Context, it *model.SampleItem) error {
-	// panic("not implemented yet")
+// InsertExampleTrx ...
+func (r *SampleDB) InsertExampleTrx(ctx context.Context, m *model.SampleItem) error {
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `
 			INSERT INTO
@@ -32,10 +30,51 @@ func (r *SampleDB) InsertExampleTrx(ctx context.Context, it *model.SampleItem) e
 			VALUES 
 				($1, $2, $3)
 		`
-		_, err := tx.Exec(ctx, sql, it.StartTime, it.FinishTime, it.Status)
+		_, err := tx.Exec(ctx, sql, m.StartTime, m.FinishTime, m.Status)
 		if err != nil {
 			return fmt.Errorf("InsertExampleTrx failed: %w", err)
 		}
+		return nil
+	})
+}
+
+// AddItemExampleTrx ...
+func (r *SampleDB) AddItemExampleTrx(ctx context.Context, m *model.SampleItem) error {
+	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		sql := `
+			INSERT INTO
+				Sample_Item
+				(start_timestamp, end_timestamp, status) 
+			VALUES 
+				($1, $2, $3)
+			RETURNING item_id
+		`
+		row := tx.QueryRow(ctx, sql, m.StartTime, m.FinishTime, m.Status)
+		if err := row.Scan(&m.ID); err != nil {
+			return fmt.Errorf("scan item id failed: %w", err)
+		}
+
+		return nil
+	})
+}
+
+// UpdateStatusExampleTrx change item status
+func (r *SampleDB) UpdateStatusExampleTrx(ctx context.Context, m *model.SampleItem) error {
+	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
+		sql := `
+			UPDATE Sample_Item
+			SET status = $1
+			WHERE item_id = $2
+		`
+		resp, err := tx.Exec(ctx, sql, m.Status, m.ID)
+		if err != nil {
+			return fmt.Errorf("UpdateStatusExampleTrx failed: %w", err)
+		}
+		// must affect at least one row
+		if resp.RowsAffected() != 1 {
+			return fmt.Errorf("no rows updated")
+		}
+
 		return nil
 	})
 }

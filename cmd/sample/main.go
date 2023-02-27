@@ -16,7 +16,9 @@ import (
 )
 
 func main() {
-	ctx, done := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx, done := signal.NotifyContext(context.Background(),
+		syscall.SIGINT, syscall.SIGTERM,
+	)
 	// recover main goroutine on panic
 	defer func() {
 		done()
@@ -32,7 +34,7 @@ func main() {
 		log.Println(err)
 	}
 
-	log.Println("successful shutdown")
+	log.Println("successful application shutdown")
 }
 
 func runSampleApplication(ctx context.Context) error {
@@ -43,23 +45,26 @@ func runSampleApplication(ctx context.Context) error {
 	}
 
 	var cfg sample.Config
-	envconfig.MustProcess("HTTP", &cfg.HTTP)
-	envconfig.MustProcess("CACHE", &cfg.Cache)
-	envconfig.MustProcess("FEATURE", &cfg.Features)
+	envconfig.MustProcess("", &cfg)
+	// envconfig.MustProcess("HTTP", &cfg.HTTP)
+	// envconfig.MustProcess("CACHE", &cfg.Cache)
+	// envconfig.MustProcess("FEATURE", &cfg.Features)
+	// envconfig.MustProcess("DB", &cfg.Database)
+	// envconfig.MustProcess("AMQP", &cfg.AMQP)
 
 	// set up env remotes
-	env, err := setup.Setup(ctx, &cfg)
+	env, err := setup.NewEnvSetup(ctx, &cfg)
 	if err != nil {
-		return fmt.Errorf("setup.Setup: %w", err)
+		return fmt.Errorf("setup.NewEnvSetup: %w", err)
 	}
 
 	// set tasks to do on server shut down
-	defer func(env *server.Env, ctx context.Context) {
+	defer func(ctx context.Context, env *server.Env) {
 		err := env.ShutdownJobs(ctx)
 		if err != nil {
 			fmt.Printf("env.ShutdownJobs: %s", err.Error())
 		}
-	}(env, ctx)
+	}(ctx, env)
 
 	someServer, err := sample.NewServer(&cfg, env)
 	if err != nil {

@@ -34,9 +34,43 @@ client.test("Headers option exists", function() {
 });
 %}
 
-
 ### Check health response
 GET http://localhost:{{http_port}}/api/v1/sample/health
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Check create item response
+POST http://localhost:{{http_port}}/api/v1/sample
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Check update item response
+PUT http://localhost:{{http_port}}/api/v1/sample
+Content-Type: application/json
+
+{
+  "id": 1,
+  "start_time": "1",
+  "finish_time": "1",
+  "status": "PENDING"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Check get item response
+GET http://localhost:{{http_port}}/api/v1/sample
 
 > {%
 client.test("Request executed successfully", function() {

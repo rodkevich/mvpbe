@@ -4,7 +4,7 @@ WORKDIR $GOPATH/src/app/
 COPY . .
 
 # Build binary with
-# disabling cross compilation
+# disabling cross compilation, use linux
 # removing debug information
 RUN set -ex; \
     CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/server ./cmd/sample/main.go;
