@@ -6,11 +6,12 @@ import (
 	"log"
 
 	"github.com/rodkevich/mvpbe/internal/server"
-	"github.com/rodkevich/mvpbe/pkg/api/v1"
 	"github.com/rodkevich/mvpbe/pkg/database"
 	"github.com/rodkevich/mvpbe/pkg/features"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 	"github.com/rodkevich/mvpbe/pkg/redis"
+
+	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
 // DatabaseConfigProvider ...
@@ -20,7 +21,7 @@ type DatabaseConfigProvider interface{ DatabaseConfig() *database.Database }
 type CacheConfigProvider interface{ CacheConfig() *redis.Config }
 
 // HTTPConfigProvider ...
-type HTTPConfigProvider interface{ HTTPConfig() *v1.Config }
+type HTTPConfigProvider interface{ HTTPConfig() *api.Config }
 
 // FeaturesConfigProvider contains enabled/disabled app features
 type FeaturesConfigProvider interface{ FeaturesConfig() *features.Config }

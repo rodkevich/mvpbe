@@ -26,8 +26,8 @@ func (r *SampleDB) InsertExampleTrx(ctx context.Context, m *model.SampleItem) er
 		sql := `
 			INSERT INTO
 				Sample_Item
-				(start_timestamp, end_timestamp, status) 
-			VALUES 
+				(start_timestamp, end_timestamp, status)
+			VALUES
 				($1, $2, $3)
 		`
 		_, err := tx.Exec(ctx, sql, m.StartTime, m.FinishTime, m.Status)
@@ -44,8 +44,8 @@ func (r *SampleDB) AddItemExampleTrx(ctx context.Context, m *model.SampleItem) e
 		sql := `
 			INSERT INTO
 				Sample_Item
-				(start_timestamp, end_timestamp, status) 
-			VALUES 
+				(start_timestamp, end_timestamp, status)
+			VALUES
 				($1, $2, $3)
 			RETURNING item_id
 		`
@@ -87,9 +87,9 @@ func (r *SampleDB) Readiness() error {
 // AllDatabases query for all db names
 func (r *SampleDB) AllDatabases(ctx context.Context) ([]string, error) {
 	const sql = `
-		SELECT 
-		    datname 
-		FROM 
+		SELECT
+		    datname
+		FROM
 		    pg_database;`
 	rows, err := r.db.Pool.Query(ctx, sql)
 	if err != nil {

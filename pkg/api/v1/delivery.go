@@ -7,7 +7,7 @@ import (
 )
 
 type SampleItemRequest struct {
-	ID     int    `json:"id,omitempty,omitempty"`
+	ID     int    `json:"id,omitempty"`
 	Status string `json:"status,omitempty"`
 }
 

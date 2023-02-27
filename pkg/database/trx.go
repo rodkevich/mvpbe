@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	pgx "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5"
 )
 
 // InTx runs within a transaction with the isolation level.
@@ -22,7 +22,7 @@ func (db *DB) InTx(ctx context.Context, isoLevel pgx.TxIsoLevel, in func(tx pgx.
 
 	if txError := in(tx); txError != nil {
 		if dbError := tx.Rollback(ctx); dbError != nil {
-			return fmt.Errorf("transaction rolling back: %v (db error: %w)", dbError, txError)
+			return fmt.Errorf("transaction rolling back: %w (db error: %w)", dbError, txError)
 		}
 		return txError
 	}
