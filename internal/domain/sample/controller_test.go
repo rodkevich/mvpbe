@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/rodkevich/mvpbe/internal/dev"
 	"github.com/rodkevich/mvpbe/internal/domain/sample/mocks"
@@ -20,6 +22,7 @@ import (
 
 func TestHandler_UpdateItemHandler_use_httptest_example(t *testing.T) {
 	t.Parallel()
+
 	data := &api.SampleItemRequest{
 		ID:     1,
 		Status: model.ItemPending,
@@ -39,11 +42,43 @@ func TestHandler_UpdateItemHandler_use_httptest_example(t *testing.T) {
 	useCase := mocks.NewUseCase(t)
 	useCase.On("UpdateItem", dev.TestContext(t), item).Return(nil)
 
+	t.Run("require status 200", func(t *testing.T) {
+		t.Parallel()
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/sample", &b)
+		w := httptest.NewRecorder()
+		h := NewHandler(useCase)
+		h.UpdateItemHandler()(w, req)
+		assert.Equal(t, w.Code, 200)
+	})
+}
+
+func TestHandler_UpdateItemHandler_validator_reject_example(t *testing.T) {
+	t.Parallel()
+
+	useCase := mocks.NewUseCase(t)
+
+	data := &api.SampleItemRequest{
+		ID:     0, // incorrect id
+		Status: model.ItemPending,
+	}
+
+	var b bytes.Buffer
+	err := json.NewEncoder(&b).Encode(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/sample", &b)
 	w := httptest.NewRecorder()
 	h := NewHandler(useCase)
+
 	h.UpdateItemHandler()(w, req)
-	assert.Equal(t, w.Code, 200)
+	assert.Equal(t, 400, w.Code)
+
+	body, err := io.ReadAll(w.Body)
+	require.NoError(t, err, "failed to read HTTP body")
+	assert.Equal(t, `{"error":"Bad Request"}`, string(body))
 }
 
 func TestHandler_CreateItemHandler_positive(t *testing.T) {
@@ -55,6 +90,8 @@ func TestHandler_CreateItemHandler_positive(t *testing.T) {
 
 	// uses httptest under the hood
 	t.Run("no error", func(t *testing.T) {
+		t.Parallel()
+
 		assert.HTTPSuccess(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil)
 		assert.HTTPBodyContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "data")
 		assert.HTTPBodyContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "item")
