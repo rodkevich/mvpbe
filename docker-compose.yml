@@ -20,6 +20,11 @@ services:
     image: "postgres:15-alpine"
     #restart: always
     container_name: ${DB_HOST}
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 3000M
     healthcheck:
       test: pg_isready -U ${DB_USER}
     environment:
