@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	gofakeIt "github.com/brianvoe/gofakeit/v6"
@@ -22,38 +24,42 @@ func main() {
 	}
 	defer conn.Close()
 
-	channel, err := conn.Channel()
+	ch, err := conn.Channel()
 	if err != nil {
 		println("conn.Channel ", err)
 	}
 
-	err = channel.ExchangeDeclare("sample_exchange", "direct", true, false, false, false, nil)
+	err = ch.ExchangeDeclare("sample_exchange", "direct", true, false, false, false, nil)
 	if err != nil {
 		println("channel.ExchangeDeclare ", err)
 	}
 
-	q, err := channel.QueueDeclare("sample_que", true, false, false, false, nil)
+	q, err := ch.QueueDeclare("sample_que", true, false, false, false, nil)
 	if err != nil {
 		println("channel.QueueDeclare ", err)
 	}
 	fmt.Println(q)
 	p := publisher{
 		amqpConn: conn,
-		amqpChan: channel,
+		amqpChan: ch,
 	}
 	defer p.Close()
 
 	ctx := context.Background()
-	err = p.Publish(ctx, "", "sample_que", amqp.Publishing{
-		Headers:   map[string]interface{}{"trace-id": gofakeIt.UUID()},
-		Timestamp: time.Now().UTC(),
-		Body:      []byte(gofakeIt.BeerAlcohol()),
-	},
-	)
 
-	if err != nil {
-		println("p.Publish ", err)
+	for i := 0; i < 10; i++ {
+		err = p.Publish(ctx, "", "sample_que", amqp.Publishing{
+			Headers:   map[string]interface{}{"trace-id": gofakeIt.UUID()},
+			Timestamp: time.Now().UTC(),
+			Body:      []byte(gofakeIt.BeerName()),
+		},
+		)
+
+		if err != nil {
+			println("p.Publish sample_que", err)
+		}
 	}
+
 	err = p.Publish(ctx, "sample_exchange", "",
 		amqp.Publishing{
 			Headers:   map[string]interface{}{"trace-id": gofakeIt.UUID()},
@@ -63,8 +69,39 @@ func main() {
 	)
 
 	if err != nil {
-		println("p.Publish ", err)
+		println("p.Publish sample_exchange", err)
 	}
+
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		false,  // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+	if err != nil {
+		println("Failed to register a consumer: ", err)
+	}
+
+	var forever chan struct{}
+
+	go func() {
+		for d := range msgs {
+			time.Sleep(300 * time.Millisecond)
+			log.Printf("[+] Received a message: %s", d.Body)
+			dotCount := bytes.Count(d.Body, []byte("."))
+			t := time.Duration(dotCount)
+			time.Sleep(t * time.Second)
+			log.Printf("Done")
+			d.Ack(false)
+		}
+	}()
+
+	log.Printf("[*] waiting for messages")
+
+	<-forever
 }
 
 func NewRabbitMQConnection(cfg rabbitmq.Config) (*amqp.Connection, error) {
