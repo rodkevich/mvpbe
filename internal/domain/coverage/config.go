@@ -1,11 +1,10 @@
 package coverage
 
 import (
-	"github.com/rodkevich/mvpbe/pkg/configs"
+	"github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
 // Config for application
 type Config struct {
-	HTTP  configs.HTTP
-	Cache configs.Cache
+	HTTP v1.Config
 }
