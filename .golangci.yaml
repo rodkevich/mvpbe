@@ -1,0 +1,57 @@
+run:
+  timeout: '5m'
+  build-tags:
+  - 'all'
+
+  skip-dirs-use-default: false
+  modules-download-mode: 'readonly'
+  allow-parallel-runners: true
+
+linters:
+  enable:
+  - 'asciicheck'
+  - 'bodyclose'
+  - 'depguard'
+  - 'dogsled'
+  - 'errcheck'
+  - 'errorlint'
+  - 'exportloopref'
+  - 'gofmt'
+  - 'gofumpt'
+  - 'goheader'
+  - 'goimports'
+  - 'gomodguard'
+  - 'goprintffuncname'
+  - 'gosec'
+  - 'gosimple'
+  - 'govet'
+  - 'ineffassign'
+  - 'makezero'
+  - 'misspell'
+  - 'noctx'
+  - 'paralleltest'
+  - 'prealloc'
+  - 'predeclared'
+  - 'revive'
+  - 'sqlclosecheck'
+  - 'staticcheck'
+  - 'stylecheck'
+  - 'typecheck'
+  - 'unconvert'
+  - 'unused'
+  - 'whitespace'
+
+issues:
+  exclude:
+  - '^S1023:'
+  - '^SA3000:'
+  - '^G102:'
+  - '^G402:'
+  - '^G505:'
+  - '^Range statement' # paralleltest: false positives
+  - '^var-declaration:' # revive: false positive
+  - '^exported:' # revive: backwards-compat
+  max-issues-per-linter: 0
+  max-same-issues: 0
+severity:
+  default-severity: error
