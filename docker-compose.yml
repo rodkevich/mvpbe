@@ -15,10 +15,10 @@ services:
       - ${HTTP_PORT}:${HTTP_PORT}
     depends_on:
       - postgres
+      - redis
 
   postgres:
     image: "postgres:15-alpine"
-    #restart: always
     container_name: ${DB_HOST}
     deploy:
       resources:
@@ -36,11 +36,9 @@ services:
     expose:
       - "5432"
 
-#  redis:
-#    image: 'redis:7.0'
-#    restart: always
-#    ports:
-#      - "6379:6379"
-#      - ${CACHE_PORT}:6379
-#    environment:
-#      - ALLOW_EMPTY_PASSWORD=yes
+  redis:
+    image: "redis:7.0.5"
+    ports:
+      - ${CACHE_PORT}:6379
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
