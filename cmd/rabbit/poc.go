@@ -90,7 +90,7 @@ func main() {
 		for d := range msgs {
 			time.Sleep(300 * time.Millisecond)
 			log.Printf("[+] Received a message: %s", d.Body)
-			d.Ack(false)
+			_ = d.Ack(false)
 		}
 	}()
 
