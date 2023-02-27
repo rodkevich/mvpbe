@@ -1,8 +1,8 @@
 package sample
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 
@@ -29,22 +29,23 @@ func NewHandler(cmd UseCase) *Handler {
 // GetItemHandler render an item by id
 func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
 		id := r.URL.Query().Get("id")
 		if id == "" {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			return
 		}
-		fmt.Println("==========" + id + "===========")
 
-		data, err := h.usecase.GetItem(ctx, id)
+		if _, err := strconv.Atoi(id); err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		}
+
+		item, err := h.usecase.GetItem(r.Context(), id)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
-
 		resp := api.ResponseBase{
-			Data: data,
+			Data: map[string]interface{}{"item": item},
 			Meta: api.MetaData{
 				Size:  1,
 				Total: 1,
@@ -57,17 +58,15 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 // CreateItemHandler creates new model.SampleItem
 func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
 		item := &model.SampleItem{}
-		err := h.usecase.CreateItem(ctx, item)
+		err := h.usecase.CreateItem(r.Context(), item)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
 
-		data := map[string]interface{}{"item": item}
 		resp := api.ResponseBase{
-			Data: data,
+			Data: map[string]interface{}{"item": item},
 			Meta: api.MetaData{
 				Size:  1,
 				Total: 1,
@@ -80,25 +79,23 @@ func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Reques
 // UpdateItemHandler updates model.SampleItem
 func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		req := &api.SampleItemRequest{}
+		itemRequest := &api.SampleItemRequest{}
+		err := itemRequest.Bind(r.Body)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			return
+		}
 
-		err := req.Bind(r.Body)
+		err = h.validate.Struct(itemRequest)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			return
 		}
 
 		item := &model.SampleItem{}
-		item.Status = req.Status
-
-		err = h.validate.Struct(req)
-		if err != nil {
-			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			return
-		}
-
-		err = h.usecase.UpdateItem(ctx, item)
+		item.ID = itemRequest.ID
+		item.Status = itemRequest.Status
+		err = h.usecase.UpdateItem(r.Context(), item)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, err.Error())
 			return
@@ -111,9 +108,11 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 // AllDatabases sample handler to get with all db names
 func (h *Handler) AllDatabases() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		data, _ := h.usecase.AllDatabases(ctx)
-
+		data, err := h.usecase.AllDatabases(r.Context())
+		if err != nil {
+			api.Error(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		resp := api.ResponseBase{
 			Data: data,
 			Meta: api.MetaData{

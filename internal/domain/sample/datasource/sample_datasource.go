@@ -20,8 +20,8 @@ func New(db *database.DB) *SampleDB {
 	return &SampleDB{db: db}
 }
 
-// InsertExampleTrx ...
-func (r *SampleDB) InsertExampleTrx(ctx context.Context, m *model.SampleItem) error {
+// InsertNoReturnExampleTrx doesn't return any info after commit
+func (r *SampleDB) InsertNoReturnExampleTrx(ctx context.Context, m *model.SampleItem) error {
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `
 			INSERT INTO
@@ -32,13 +32,13 @@ func (r *SampleDB) InsertExampleTrx(ctx context.Context, m *model.SampleItem) er
 		`
 		_, err := tx.Exec(ctx, sql, m.StartTime, m.FinishTime, m.Status)
 		if err != nil {
-			return fmt.Errorf("InsertExampleTrx failed: %w", err)
+			return fmt.Errorf("InsertNoReturnExampleTrx failed: %w", err)
 		}
 		return nil
 	})
 }
 
-// AddItemExampleTrx ...
+// AddItemExampleTrx returns item.ID from db
 func (r *SampleDB) AddItemExampleTrx(ctx context.Context, m *model.SampleItem) error {
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `

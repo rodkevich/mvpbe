@@ -3,7 +3,6 @@ package sample
 import (
 	"github.com/rodkevich/mvpbe/internal/setup"
 	"github.com/rodkevich/mvpbe/pkg/database"
-	"github.com/rodkevich/mvpbe/pkg/features"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 	"github.com/rodkevich/mvpbe/pkg/redis"
 
@@ -14,7 +13,6 @@ var (
 	_ setup.DatabaseConfigProvider = (*Config)(nil)
 	_ setup.HTTPConfigProvider     = (*Config)(nil)
 	_ setup.CacheConfigProvider    = (*Config)(nil)
-	_ setup.FeaturesConfigProvider = (*Config)(nil)
 )
 
 // Config for application
@@ -23,7 +21,6 @@ type Config struct {
 	Database database.Database
 	HTTP     api.Config
 	Cache    redis.Config
-	Features features.Config
 }
 
 // DatabaseConfig implements setup.DatabaseConfigProvider
@@ -44,9 +41,4 @@ func (c *Config) HTTPConfig() *api.Config {
 // CacheConfig implements setup.CacheConfigProvider
 func (c *Config) CacheConfig() *redis.Config {
 	return &c.Cache
-}
-
-// FeaturesConfig implements setup.FeaturesConfigProvider
-func (c *Config) FeaturesConfig() *features.Config {
-	return &c.Features
 }

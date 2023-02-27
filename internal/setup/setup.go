@@ -7,7 +7,6 @@ import (
 
 	"github.com/rodkevich/mvpbe/internal/server"
 	"github.com/rodkevich/mvpbe/pkg/database"
-	"github.com/rodkevich/mvpbe/pkg/features"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 	"github.com/rodkevich/mvpbe/pkg/redis"
 
@@ -22,9 +21,6 @@ type CacheConfigProvider interface{ CacheConfig() *redis.Config }
 
 // HTTPConfigProvider ...
 type HTTPConfigProvider interface{ HTTPConfig() *api.Config }
-
-// FeaturesConfigProvider contains enabled/disabled app features
-type FeaturesConfigProvider interface{ FeaturesConfig() *features.Config }
 
 // AMQPConfigProvider ...
 type AMQPConfigProvider interface{ AMQPConfig() *rabbitmq.Config }
@@ -52,9 +48,6 @@ func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 	}
 	if _, ok := cfg.(HTTPConfigProvider); ok {
 		log.Println("configuring Http")
-	}
-	if _, ok := cfg.(FeaturesConfigProvider); ok {
-		log.Println("configuring Features")
 	}
 
 	return server.NewEnv(ctx, serverEnvOpts...), nil

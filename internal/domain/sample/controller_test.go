@@ -1,9 +1,11 @@
 package sample
 
 import (
-	"context"
+	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -12,61 +14,86 @@ import (
 	"github.com/rodkevich/mvpbe/internal/dev"
 	"github.com/rodkevich/mvpbe/internal/domain/sample/mocks"
 	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
+
+	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
-func TestHandler_CreateItemHandler_no_error(t *testing.T) {
+func TestHandler_UpdateItemHandler_use_httptest_example(t *testing.T) {
 	t.Parallel()
-	// item := &model.SampleItem{}
-	// var b bytes.Buffer
-	// err := json.NewEncoder(&b).Encode(item)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
+	data := &api.SampleItemRequest{
+		ID:     1,
+		Status: model.ItemPending,
+	}
 
-	// req := httptest.NewRequest(http.MethodPost, "/api/v1/sample", &b)
-	// w := httptest.NewRecorder()
+	item := &model.SampleItem{
+		ID:     1,
+		Status: model.ItemPending,
+	}
+
+	var b bytes.Buffer
+	err := json.NewEncoder(&b).Encode(data)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	useCase := mocks.NewUseCase(t)
-	useCase.On("CreateItem", context.Background(), &model.SampleItem{}).Return(nil)
+	useCase.On("UpdateItem", dev.TestContext(t), item).Return(nil)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/sample", &b)
+	w := httptest.NewRecorder()
 	h := NewHandler(useCase)
-	// h.CreateItemHandler()(w, req)
-	// uses httptest
-	assert.HTTPSuccess(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil)
-	assert.HTTPBodyContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "data")
-	assert.HTTPBodyContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "item")
+	h.UpdateItemHandler()(w, req)
+	assert.Equal(t, w.Code, 200)
 }
 
-func TestHandler_CreateItemHandler_create_error(t *testing.T) {
+func TestHandler_CreateItemHandler_positive(t *testing.T) {
 	t.Parallel()
-	ctx := dev.TestContext(t)
 
-	// item := &model.SampleItem{}
-	// var b bytes.Buffer
-	// err := json.NewEncoder(&b).Encode(item)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	//
-	// req := httptest.NewRequest(http.MethodPost, "/api/v1/sample", &b)
-	// w := httptest.NewRecorder()
+	mockUC := mocks.NewUseCase(t)
+	mockUC.On("CreateItem", dev.TestContext(t), &model.SampleItem{}).Return(nil)
+	h := NewHandler(mockUC)
 
-	useCase := mocks.NewUseCase(t)
-	useCase.On("CreateItem", ctx, &model.SampleItem{}).Return(errors.New("stub"))
-	h := NewHandler(useCase)
-	// h.CreateItemHandler()(w, req)
+	// uses httptest under the hood
+	t.Run("no error", func(t *testing.T) {
+		assert.HTTPSuccess(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil)
+		assert.HTTPBodyContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "data")
+		assert.HTTPBodyContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "item")
+	})
+}
+
+func TestHandler_CreateItemHandler_failures(t *testing.T) {
+	t.Parallel()
+
+	mockUC := mocks.NewUseCase(t)
+	mockUC.On("CreateItem", dev.TestContext(t), &model.SampleItem{}).Return(errors.New("stub"))
+	h := NewHandler(mockUC)
+
 	assert.HTTPError(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil)
 	assert.HTTPBodyNotContains(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, "data")
 	assert.HTTPStatusCode(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil, http.StatusInternalServerError)
 }
 
-func TestHandler_GetItemHandler_id(t *testing.T) {
+func TestHandler_GetItemHandler(t *testing.T) {
 	t.Parallel()
 	ctx := dev.TestContext(t)
 
-	useCase := mocks.NewUseCase(t)
-	useCase.On("GetItem", ctx, "1").Return(nil, nil)
-	h := NewHandler(useCase)
+	mockUC := mocks.NewUseCase(t)
+	mockUC.On("GetItem", ctx, "1").Return(&model.SampleItem{ID: 99999}, nil)
+	mockUC.On("GetItem", ctx, "1O1").Return(nil, nil)
+	h := NewHandler(mockUC)
 
-	assert.HTTPStatusCode(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {""}}, http.StatusBadRequest)
-	assert.HTTPStatusCode(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {"1"}}, http.StatusOK)
+	t.Run("valid_id", func(t *testing.T) {
+		t.Parallel()
+
+		assert.HTTPStatusCode(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {"1"}}, http.StatusOK)
+		assert.HTTPBodyContains(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {"1"}}, 99999)
+	})
+
+	t.Run("illegal_id", func(t *testing.T) {
+		t.Parallel()
+
+		assert.HTTPStatusCode(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {""}}, http.StatusBadRequest)
+		assert.HTTPStatusCode(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {"1O1"}}, http.StatusBadRequest)
+		assert.HTTPBodyNotContains(t, h.GetItemHandler(), "GET", "/api/v1/sample", url.Values{"id": {""}}, "data")
+	})
 }
