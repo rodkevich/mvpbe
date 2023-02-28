@@ -40,12 +40,23 @@ func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 
 		serverEnvOpts = append(serverEnvOpts, server.WithDatabase(db))
 	}
-	if _, ok := cfg.(AMQPConfigProvider); ok {
-		log.Println("configuring AMQP")
+
+	if provider, ok := cfg.(AMQPConfigProvider); ok {
+		log.Println("configuring Amqp")
+
+		conf := provider.AMQPConfig()
+		rmq, err := rabbitmq.NewPublisher(conf)
+		if err != nil {
+			return nil, fmt.Errorf("unable to connect to rabbit: %w", err)
+		}
+
+		serverEnvOpts = append(serverEnvOpts, server.WithAMQP(rmq))
 	}
+
 	if _, ok := cfg.(CacheConfigProvider); ok {
 		log.Println("configuring Cache")
 	}
+
 	if _, ok := cfg.(HTTPConfigProvider); ok {
 		log.Println("configuring Http")
 	}

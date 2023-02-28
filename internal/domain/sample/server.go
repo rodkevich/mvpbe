@@ -39,7 +39,8 @@ func (s *Server) Routes(_ context.Context) *chi.Mux {
 	r.Use(middlewares.JSONHeaderContentType)
 
 	ds := datasource.New(s.env.Database())
-	handler := NewHandler(NewDomain(ds))
+	pbl := s.env.Publisher()
+	handler := NewHandler(NewDomain(ds, pbl))
 
 	r.Route("/api/v1/sample", func(router chi.Router) {
 		router.Get("/health", server.HandleHealth(s.env.Database()))

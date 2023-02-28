@@ -3,8 +3,8 @@ version: '3.4'
 services:
 
   server:
-    image: "sample_app:latest"
     container_name: ${APP_NAME}
+    image: "sample_app:latest"
     build:
       context: .
       dockerfile: builders/docker/Dockerfile
@@ -18,8 +18,8 @@ services:
       - redis
 
   postgres:
+    container_name: database
     image: "postgres:15-alpine"
-    container_name: ${DB_HOST}
     deploy:
       resources:
         limits:
@@ -37,8 +37,16 @@ services:
       - "5432"
 
   redis:
+    container_name: redis
     image: "redis:7.0.5"
     ports:
       - ${CACHE_PORT}:6379
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.9-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"

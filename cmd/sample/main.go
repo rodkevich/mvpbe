@@ -46,11 +46,6 @@ func runSampleApplication(ctx context.Context) error {
 
 	var cfg sample.Config
 	envconfig.MustProcess("", &cfg)
-	// envconfig.MustProcess("HTTP", &cfg.HTTP)
-	// envconfig.MustProcess("CACHE", &cfg.Cache)
-	// envconfig.MustProcess("FEATURE", &cfg.Features)
-	// envconfig.MustProcess("DB", &cfg.Database)
-	// envconfig.MustProcess("AMQP", &cfg.AMQP)
 
 	// set up env remotes
 	env, err := setup.NewEnvSetup(ctx, &cfg)

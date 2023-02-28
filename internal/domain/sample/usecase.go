@@ -5,28 +5,30 @@ import (
 
 	"github.com/rodkevich/mvpbe/internal/domain/sample/datasource"
 	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
+	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
-//go:generate mockery --name UseCase --case underscore  --output mocks/
+//go:generate mockery --name ItemsSampleUsage --case underscore  --output mocks/
 
-// UseCase represents sample usage
-type UseCase interface {
+// ItemsSampleUsage represents sample usage of sample domain
+type ItemsSampleUsage interface {
 	Readiness() error
 	AllDatabases(ctx context.Context) ([]string, error)
-	CreateItem(ctx context.Context, m *model.SampleItem) error
+	AddItem(ctx context.Context, m *model.SampleItem) error
 	UpdateItem(ctx context.Context, m *model.SampleItem) error
 	GetItem(ctx context.Context, id string) (*model.SampleItem, error)
 	ListItems(ctx context.Context) ([]*model.SampleItem, error)
 }
 
-// Sample implements UseCase
+// Sample implements ItemsSampleUsage
 type Sample struct {
-	healthRepo *datasource.SampleDB
+	healthRepo    *datasource.SampleDB
+	amqpPublisher rabbitmq.AMQPPublisher
 }
 
-func (s *Sample) CreateItem(ctx context.Context, m *model.SampleItem) error {
+func (s *Sample) AddItem(ctx context.Context, m *model.SampleItem) error {
 	m.StartTime = api.TimeNow
 	m.FinishTime = api.TimeNow
 	m.Status = model.ItemCreated
@@ -59,8 +61,9 @@ func (s *Sample) AllDatabases(ctx context.Context) ([]string, error) {
 }
 
 // NewDomain constructor
-func NewDomain(repo *datasource.SampleDB) *Sample {
+func NewDomain(repo *datasource.SampleDB, pbl rabbitmq.AMQPPublisher) *Sample {
 	return &Sample{
-		healthRepo: repo,
+		healthRepo:    repo,
+		amqpPublisher: pbl,
 	}
 }

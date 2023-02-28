@@ -39,7 +39,7 @@ func TestHandler_UpdateItemHandler_use_httptest_example(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	useCase := mocks.NewUseCase(t)
+	useCase := mocks.NewItemsSampleUsage(t)
 	useCase.On("UpdateItem", dev.TestContext(t), item).Return(nil)
 
 	t.Run("require status 200", func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestHandler_UpdateItemHandler_use_httptest_example(t *testing.T) {
 func TestHandler_UpdateItemHandler_validator_reject_example(t *testing.T) {
 	t.Parallel()
 
-	useCase := mocks.NewUseCase(t)
+	useCase := mocks.NewItemsSampleUsage(t)
 
 	data := &api.SampleItemRequest{
 		ID:     0, // incorrect id
@@ -84,8 +84,8 @@ func TestHandler_UpdateItemHandler_validator_reject_example(t *testing.T) {
 func TestHandler_CreateItemHandler_positive(t *testing.T) {
 	t.Parallel()
 
-	mockUC := mocks.NewUseCase(t)
-	mockUC.On("CreateItem", dev.TestContext(t), &model.SampleItem{}).Return(nil)
+	mockUC := mocks.NewItemsSampleUsage(t)
+	mockUC.On("AddItem", dev.TestContext(t), &model.SampleItem{}).Return(nil)
 	h := NewHandler(mockUC)
 
 	// uses httptest under the hood
@@ -101,8 +101,8 @@ func TestHandler_CreateItemHandler_positive(t *testing.T) {
 func TestHandler_CreateItemHandler_failures(t *testing.T) {
 	t.Parallel()
 
-	mockUC := mocks.NewUseCase(t)
-	mockUC.On("CreateItem", dev.TestContext(t), &model.SampleItem{}).Return(errors.New("stub"))
+	mockUC := mocks.NewItemsSampleUsage(t)
+	mockUC.On("AddItem", dev.TestContext(t), &model.SampleItem{}).Return(errors.New("stub"))
 	h := NewHandler(mockUC)
 
 	assert.HTTPError(t, h.CreateItemHandler(), "POST", "/api/v1/sample", nil)
@@ -114,7 +114,7 @@ func TestHandler_GetItemHandler(t *testing.T) {
 	t.Parallel()
 	ctx := dev.TestContext(t)
 
-	mockUC := mocks.NewUseCase(t)
+	mockUC := mocks.NewItemsSampleUsage(t)
 	mockUC.On("GetItem", ctx, "1").Return(&model.SampleItem{ID: 99999}, nil)
 	mockUC.On("GetItem", ctx, "1O1").Return(nil, nil)
 	h := NewHandler(mockUC)

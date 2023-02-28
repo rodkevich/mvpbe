@@ -14,12 +14,12 @@ import (
 
 // Handler ...
 type Handler struct {
-	usecase  UseCase
+	usecase  ItemsSampleUsage
 	validate *validator.Validate
 }
 
 // NewHandler ...
-func NewHandler(cmd UseCase) *Handler {
+func NewHandler(cmd ItemsSampleUsage) *Handler {
 	return &Handler{
 		usecase:  cmd,
 		validate: validate.New(),
@@ -59,7 +59,7 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		item := &model.SampleItem{}
-		err := h.usecase.CreateItem(r.Context(), item)
+		err := h.usecase.AddItem(r.Context(), item)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
