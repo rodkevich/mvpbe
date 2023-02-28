@@ -28,7 +28,7 @@ type AMQPConfigProvider interface{ AMQPConfig() *rabbitmq.Config }
 // NewEnvSetup server.Env
 func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 	var serverEnvOpts []server.Option
-
+	// check if we have to configure db
 	if provider, ok := cfg.(DatabaseConfigProvider); ok {
 		log.Println("configuring Database")
 
@@ -40,7 +40,7 @@ func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 
 		serverEnvOpts = append(serverEnvOpts, server.WithDatabase(db))
 	}
-
+	// check if we have to configure amqp
 	if provider, ok := cfg.(AMQPConfigProvider); ok {
 		log.Println("configuring Amqp")
 
@@ -52,11 +52,11 @@ func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 
 		serverEnvOpts = append(serverEnvOpts, server.WithAMQP(rmq))
 	}
-
+	// check if we have to configure cache
 	if _, ok := cfg.(CacheConfigProvider); ok {
 		log.Println("configuring Cache")
 	}
-
+	// check if we have to configure http
 	if _, ok := cfg.(HTTPConfigProvider); ok {
 		log.Println("configuring Http")
 	}

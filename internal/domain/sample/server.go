@@ -25,6 +25,10 @@ func NewServer(cfg *Config, env *server.Env) (*Server, error) {
 		return nil, fmt.Errorf("server requires a database to be presented in the serverenv")
 	}
 
+	if env.Publisher() == nil {
+		return nil, fmt.Errorf("server requires an ampq publisher to be presented in the serverenv")
+	}
+
 	return &Server{
 		env:    env,
 		config: cfg,
