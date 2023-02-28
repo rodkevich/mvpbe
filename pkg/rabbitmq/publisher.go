@@ -47,9 +47,12 @@ func NewRabbitMQConnection(cfg *Config) (*amqp.Connection, error) {
 
 // Close ...
 func (p *Publisher) Close() {
+	log.Println("Closing amqp channel.")
 	if err := p.AMQPChan.Close(); err != nil {
 		log.Printf("publisher mqpChan.Close err: %v", err)
 	}
+
+	log.Println("Closing amqp connection.")
 	if err := p.AMQPConn.Close(); err != nil {
 		log.Printf("publisher amqpConn.Close err: %v", err)
 	}
