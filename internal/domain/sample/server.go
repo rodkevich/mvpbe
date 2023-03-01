@@ -44,18 +44,22 @@ func (s *Server) Routes(_ context.Context) *chi.Mux {
 
 	ds := datasource.New(s.env.Database())
 	pbl := s.env.Publisher()
-	handler := NewHandler(NewDomain(ds, pbl))
+	items := NewItemsHandler(NewDomain(ds, pbl))
 
-	r.Route("/api/v1/sample", func(router chi.Router) {
-		router.Get("/health", server.HandleHealth(s.env.Database()))
-		router.Get("/liveness", handler.LivenessHandler())
+	r.Route("/api/v1/items", func(r chi.Router) {
+		r.Get("/health", server.HandleHealth(s.env.Database()))
+		r.Get("/liveness", items.LivenessHandler())
+		r.Get("/databases", items.AllDatabases())
+		r.Handle("/metrics", promhttp.Handler())
 
-		router.Get("/{id}", handler.GetItemHandler())
-		router.Put("/", handler.UpdateItemHandler())
-		router.Post("/", handler.CreateItemHandler())
-
-		router.Get("/databases", handler.AllDatabases())
-		router.Handle("/metrics", promhttp.Handler())
+		// items:
+		r.Post("/", items.CreateItemHandler())
+		// r.Get("/", handler.ListItemHandler())
+		r.Route("/{itemID}", func(r chi.Router) {
+			r.Get("/", items.GetItemHandler())
+			r.Put("/", items.UpdateItemHandler())
+			// r.Delete("/", handler.DeleteItemHandler())
+		})
 	})
 
 	return r

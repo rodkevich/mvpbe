@@ -4,5 +4,5 @@ import (
 	"time"
 )
 
-// TimeNow for in application responses usage
-var TimeNow = time.Now().Truncate(time.Microsecond)
+// TimeNow for in application responses
+func TimeNow() time.Time { return time.Now().Truncate(time.Microsecond) }

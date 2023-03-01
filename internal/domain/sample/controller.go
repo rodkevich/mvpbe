@@ -1,9 +1,11 @@
 package sample
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
@@ -18,8 +20,8 @@ type Handler struct {
 	validate *validator.Validate
 }
 
-// NewHandler ...
-func NewHandler(cmd ItemsSampleUsage) *Handler {
+// NewItemsHandler ...
+func NewItemsHandler(cmd ItemsSampleUsage) *Handler {
 	return &Handler{
 		usecase:  cmd,
 		validate: validate.New(),
@@ -29,7 +31,7 @@ func NewHandler(cmd ItemsSampleUsage) *Handler {
 // GetItemHandler render an item by id
 func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.URL.Query().Get("id")
+		id := chi.URLParam(r, "itemID")
 		if id == "" {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			return
@@ -37,19 +39,20 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 
 		if _, err := strconv.Atoi(id); err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Println("GetItemHandler strconv.Atoi: ", err)
+
+			return
 		}
 
 		item, err := h.usecase.GetItem(r.Context(), id)
 		if err != nil {
+			log.Println("GetItemHandler usecase.GetItem:", err)
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
 		resp := api.ResponseBase{
 			Data: map[string]interface{}{"item": item},
-			Meta: api.MetaData{
-				Size:  1,
-				Total: 1,
-			},
+			Meta: api.MetaData{Size: 1, Total: 1},
 		}
 		api.RenderJSON(w, http.StatusOK, resp)
 	}
@@ -67,10 +70,7 @@ func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Reques
 
 		resp := api.ResponseBase{
 			Data: map[string]interface{}{"item": item},
-			Meta: api.MetaData{
-				Size:  1,
-				Total: 1,
-			},
+			Meta: api.MetaData{Size: 1, Total: 1},
 		}
 		api.RenderJSON(w, http.StatusOK, resp)
 	}
@@ -79,13 +79,31 @@ func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Reques
 // UpdateItemHandler updates model.SampleItem
 func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		itemRequest := &api.SampleItemRequest{}
-		err := itemRequest.Bind(r.Body)
-		if err != nil {
+		i := chi.URLParam(r, "itemID")
+		if i == "" {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Printf("if i == .... [%s]\n", i)
 			return
 		}
 
+		id, err := strconv.Atoi(i)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Println("strconv.Atoi: ", err)
+
+			return
+		}
+
+		itemRequest := &api.SampleItemRequest{}
+		err = itemRequest.Bind(r.Body)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Println("itemRequest.Bind: ", err)
+
+			return
+		}
+
+		itemRequest.ID = id
 		err = h.validate.Struct(itemRequest)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))

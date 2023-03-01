@@ -44,8 +44,8 @@ func TestSampleDB(t *testing.T) {
 
 		sampleDB := SampleDB{db: tdb}
 		item := &model.SampleItem{
-			StartTime:  api.TimeNow,
-			FinishTime: api.TimeNow.Add(5 * time.Minute),
+			StartTime:  api.TimeNow(),
+			FinishTime: api.TimeNow().Add(5 * time.Minute),
 			Status:     model.ItemCreated,
 		}
 
@@ -66,8 +66,8 @@ func TestSampleDB(t *testing.T) {
 
 		sampleDB := SampleDB{db: tdb}
 		item := &model.SampleItem{
-			StartTime:  api.TimeNow,
-			FinishTime: api.TimeNow.Add(15 * time.Minute),
+			StartTime:  api.TimeNow(),
+			FinishTime: api.TimeNow().Add(15 * time.Minute),
 			Status:     model.ItemCreated,
 		}
 

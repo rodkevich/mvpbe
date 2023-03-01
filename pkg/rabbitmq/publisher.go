@@ -7,6 +7,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+//go:generate mockery --name AMQPPublisher --case underscore  --output mocks/
+
 // AMQPPublisher ...
 type AMQPPublisher interface {
 	PublishWithContext(ctx context.Context, exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error

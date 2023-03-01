@@ -13,6 +13,7 @@ var (
 	_ setup.DatabaseConfigProvider = (*Config)(nil)
 	_ setup.HTTPConfigProvider     = (*Config)(nil)
 	_ setup.CacheConfigProvider    = (*Config)(nil)
+	_ setup.AMQPConfigProvider     = (*Config)(nil)
 )
 
 // Config for application

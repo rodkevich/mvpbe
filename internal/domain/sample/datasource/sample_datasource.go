@@ -25,10 +25,10 @@ func (r *SampleDB) InsertNoReturnExampleTrx(ctx context.Context, m *model.Sample
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `
 			INSERT INTO
-				Sample_Item
+				sample_item
 				(start_timestamp, end_timestamp, status)
 			VALUES
-				($1, $2, $3)
+				($1, $2, $3);
 		`
 		_, err := tx.Exec(ctx, sql, m.StartTime, m.FinishTime, m.Status)
 		if err != nil {
@@ -43,11 +43,11 @@ func (r *SampleDB) AddItemExampleTrx(ctx context.Context, m *model.SampleItem) e
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `
 			INSERT INTO
-				Sample_Item
+				sample_item
 				(start_timestamp, end_timestamp, status)
 			VALUES
 				($1, $2, $3)
-			RETURNING item_id
+			RETURNING item_id;
 		`
 		row := tx.QueryRow(ctx, sql, m.StartTime, m.FinishTime, m.Status)
 		if err := row.Scan(&m.ID); err != nil {
@@ -62,11 +62,13 @@ func (r *SampleDB) AddItemExampleTrx(ctx context.Context, m *model.SampleItem) e
 func (r *SampleDB) UpdateStatusExampleTrx(ctx context.Context, m *model.SampleItem) error {
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `
-			UPDATE Sample_Item
-			SET status = $1
-			WHERE item_id = $2
+			UPDATE 
+			    sample_item
+			SET  status = $1, end_timestamp=$2
+			WHERE 
+			    item_id = $3;
 		`
-		resp, err := tx.Exec(ctx, sql, m.Status, m.ID)
+		resp, err := tx.Exec(ctx, sql, m.Status, m.FinishTime, m.ID)
 		if err != nil {
 			return fmt.Errorf("UpdateStatusExampleTrx failed: %w", err)
 		}
@@ -90,7 +92,8 @@ func (r *SampleDB) AllDatabases(ctx context.Context) ([]string, error) {
 		SELECT
 		    datname
 		FROM
-		    pg_database;`
+		    pg_database;
+	`
 	rows, err := r.db.Pool.Query(ctx, sql)
 	if err != nil {
 		fmt.Printf("Pool.Query: %s", err)
@@ -109,4 +112,24 @@ func (r *SampleDB) AllDatabases(ctx context.Context) ([]string, error) {
 	}
 
 	return batch, nil
+}
+
+// GetItemExample by id
+func (r *SampleDB) GetItemExample(ctx context.Context, id string) (*model.SampleItem, error) {
+	sql := `
+			SELECT 
+			    item_id, start_timestamp, end_timestamp, status
+			FROM 
+			    sample_item
+			WHERE 
+			    item_id = $1;
+	`
+	row := r.db.Pool.QueryRow(ctx, sql, id)
+
+	var m model.SampleItem
+	if err := row.Scan(&m.ID, &m.StartTime, &m.FinishTime, &m.Status); err != nil {
+		return nil, fmt.Errorf("item id %s: scan failed: %w", id, err)
+	}
+
+	return &m, nil
 }
