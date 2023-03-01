@@ -14,12 +14,22 @@ type AMQPPublisher interface {
 	PublishWithContext(ctx context.Context, exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error
 	Publish(ctx context.Context, exchange, key string, msg amqp.Publishing) error
 	Close()
+	GetChannel() *amqp.Channel
+	GetConnection() *amqp.Connection
 }
 
 // Publisher ...
 type Publisher struct {
 	AMQPConn *amqp.Connection
 	AMQPChan *amqp.Channel
+}
+
+func (p *Publisher) GetChannel() *amqp.Channel {
+	return p.AMQPChan
+}
+
+func (p *Publisher) GetConnection() *amqp.Connection {
+	return p.AMQPConn
 }
 
 // NewPublisher ...

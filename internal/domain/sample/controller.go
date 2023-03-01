@@ -51,8 +51,8 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 				log.Printf("got request for deleted item")
 				return
 			}
-			log.Println("usecase.GetItem error:", err)
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			log.Println("usecase.GetItem error:", err)
 			return
 		}
 
@@ -96,7 +96,6 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			log.Println("strconv.Atoi error: ", err)
-
 			return
 		}
 
@@ -105,7 +104,6 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			log.Println("itemRequest.Bind error: ", err)
-
 			return
 		}
 

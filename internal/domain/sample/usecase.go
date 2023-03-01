@@ -2,7 +2,10 @@ package sample
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/rodkevich/mvpbe/internal/domain/sample/datasource"
 	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
@@ -25,8 +28,8 @@ type ItemsSampleUsage interface {
 
 // Items implements ItemsSampleUsage
 type Items struct {
-	itemsRepo     *datasource.SampleDB
-	amqpPublisher rabbitmq.AMQPPublisher
+	db  *datasource.SampleDB
+	rmq rabbitmq.AMQPPublisher
 }
 
 // AddItem ...
@@ -34,18 +37,35 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 	m.StartTime = api.TimeNow()
 	m.FinishTime = api.TimeNow()
 	m.Status = model.ItemCreated
-	return i.itemsRepo.AddItemExampleTrx(ctx, m)
+
+	err := i.db.AddItemExampleTrx(ctx, m)
+	if err != nil {
+		return fmt.Errorf("remote add failed: %w", err)
+	}
+
+	dataBytes, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("json.marshal failed: %w", err)
+	}
+
+	return i.rmq.Publish(
+		ctx, exampleItemsExchangeName, exampleItemsBindingKey,
+		amqp.Publishing{
+			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+			Timestamp: api.TimeNow(),
+			Body:      dataBytes,
+		})
 }
 
 // UpdateItem ...
 func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 	m.FinishTime = api.TimeNow()
-	return i.itemsRepo.UpdateStatusExampleTrx(ctx, m)
+	return i.db.UpdateStatusExampleTrx(ctx, m)
 }
 
 // GetItem ...
 func (i *Items) GetItem(ctx context.Context, id string) (*model.SampleItem, error) {
-	example, err := i.itemsRepo.GetItemExample(ctx, id)
+	example, err := i.db.GetItemExample(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("remote get failed: %w", err)
 	}
@@ -64,18 +84,18 @@ func (i *Items) ListItems(ctx context.Context) ([]*model.SampleItem, error) {
 
 // Readiness of domain
 func (i *Items) Readiness() error {
-	return i.itemsRepo.Readiness()
+	return i.db.Readiness()
 }
 
 // AllDatabases sample method to get with all db names
 func (i *Items) AllDatabases(ctx context.Context) ([]string, error) {
-	return i.itemsRepo.AllDatabases(ctx)
+	return i.db.AllDatabases(ctx)
 }
 
-// NewDomain constructor
-func NewDomain(repo *datasource.SampleDB, pbl rabbitmq.AMQPPublisher) *Items {
+// NewItemsDomain constructor
+func NewItemsDomain(repo *datasource.SampleDB, pbl rabbitmq.AMQPPublisher) *Items {
 	return &Items{
-		itemsRepo:     repo,
-		amqpPublisher: pbl,
+		db:  repo,
+		rmq: pbl,
 	}
 }

@@ -16,12 +16,20 @@ var (
 	_ setup.AMQPConfigProvider     = (*Config)(nil)
 )
 
+const (
+	// rabbit exchange settings todo move to cfg
+	exampleItemsQueueName    = "example_items"
+	exampleItemsExchangeName = "example_items_exchange"
+	exampleItemsBindingKey   = "example_items_binding_key"
+	exampleItemsExchangeKind = "direct"
+)
+
 // Config for application
 type Config struct {
 	AMQP     rabbitmq.Config
+	Cache    redis.Config
 	Database database.Database
 	HTTP     api.Config
-	Cache    redis.Config
 }
 
 // DatabaseConfig implements setup.DatabaseConfigProvider

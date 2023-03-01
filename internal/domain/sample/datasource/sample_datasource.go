@@ -64,7 +64,8 @@ func (r *SampleDB) UpdateStatusExampleTrx(ctx context.Context, m *model.SampleIt
 		sql := `
 			UPDATE
 			    sample_item
-			SET  status = $1, end_timestamp=$2
+			SET
+			    status = $1, end_timestamp=$2
 			WHERE
 			    item_id = $3;
 		`

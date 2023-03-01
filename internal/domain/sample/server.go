@@ -3,6 +3,7 @@ package sample
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,7 +45,26 @@ func (s *Server) Routes(_ context.Context) *chi.Mux {
 
 	ds := datasource.New(s.env.Database())
 	pbl := s.env.Publisher()
-	items := NewItemsHandler(NewDomain(ds, pbl))
+	ch := pbl.GetChannel()
+
+	// todo make compact
+	log.Println("configuring rabbit ")
+	err := ch.ExchangeDeclare(exampleItemsExchangeName, exampleItemsExchangeKind, true, false, false, false, nil)
+	if err != nil {
+		log.Fatal("err := ch.ExchangeDeclare")
+	}
+	queue, err := ch.QueueDeclare(exampleItemsQueueName, true, false, false, false, nil)
+	if err != nil {
+		log.Fatal("err := ch.QueueDeclare")
+	}
+	err = ch.QueueBind(queue.Name, exampleItemsBindingKey, exampleItemsExchangeName, false, nil)
+	if err != nil {
+		log.Fatal("err := ch.QueueBind")
+	}
+
+	items := NewItemsHandler(NewItemsDomain(ds, pbl))
+
+	log.Println("configuring routes")
 
 	r.Route("/api/v1/items", func(r chi.Router) {
 		r.Get("/health", server.HandleHealth(s.env.Database()))
