@@ -48,7 +48,7 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 		if err != nil {
 			if errors.Is(err, errDeletedItem) {
 				api.Error(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
-				log.Printf("got request for deleted item with id: %s", id)
+				log.Printf("got request for deleted item")
 				return
 			}
 			log.Println("usecase.GetItem error:", err)
