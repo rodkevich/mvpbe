@@ -76,6 +76,43 @@ func TestHandler_UpdateItemHandler_Httptest_Usage_Example(t *testing.T) {
 		require.NoError(t, err, "failed to read HTTP body")
 		assert.Equal(t, `{"error":"Bad Request"}`, string(body))
 	})
+
+	t.Run("fail on params validation", func(t *testing.T) {
+		t.Parallel()
+
+		tests := []struct{ itemID string }{
+			{itemID: "0"},
+			{itemID: "O1"}, // contains letter
+			{itemID: ""},
+		}
+
+		for _, tt := range tests {
+			test := tt
+			t.Run(tt.itemID, func(t *testing.T) {
+				t.Parallel()
+
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodPost, "/api/v1/items", nil)
+
+				ctx := dev.TestContext(t)
+				chiCtx := chi.NewRouteContext()
+
+				chiCtx.URLParams.Add("itemID", test.itemID) // for chi.URLParam getter function
+				ctx = context.WithValue(ctx, chi.RouteCtxKey, chiCtx)
+				r = r.WithContext(ctx)
+
+				useCase := mocks.NewItemsSampleUsage(t)
+
+				h := NewItemsHandler(useCase)
+				h.UpdateItemHandler()(w, r)
+				assert.Equal(t, 400, w.Code)
+
+				body, err := io.ReadAll(w.Body)
+				require.NoError(t, err, "failed to read HTTP body")
+				assert.Equal(t, `{"error":"Bad Request"}`, string(body))
+			})
+		}
+	})
 }
 
 func TestHandler_CreateItemHandler_positive(t *testing.T) {
@@ -85,7 +122,7 @@ func TestHandler_CreateItemHandler_positive(t *testing.T) {
 	mockUC.On("AddItem", dev.TestContext(t), &model.SampleItem{}).Return(nil)
 	h := NewItemsHandler(mockUC)
 
-	// uses httptest under the hood
+	// in fact uses httptest under the hood
 	t.Run("no error", func(t *testing.T) {
 		t.Parallel()
 

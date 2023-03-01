@@ -1,6 +1,7 @@
 package sample
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -39,17 +40,22 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 
 		if _, err := strconv.Atoi(id); err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			log.Println("GetItemHandler strconv.Atoi: ", err)
-
+			log.Println("strconv.Atoi: ", err)
 			return
 		}
 
 		item, err := h.usecase.GetItem(r.Context(), id)
 		if err != nil {
-			log.Println("GetItemHandler usecase.GetItem:", err)
+			if errors.Is(err, errDeletedItem) {
+				api.Error(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
+				log.Printf("got request for deleted item with id: %s", id)
+				return
+			}
+			log.Println("usecase.GetItem error:", err)
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			return
 		}
+
 		resp := api.ResponseBase{
 			Data: map[string]interface{}{"item": item},
 			Meta: api.MetaData{Size: 1, Total: 1},
@@ -65,6 +71,7 @@ func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		err := h.usecase.AddItem(r.Context(), item)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			log.Println("usecase.AddItem error:", err)
 			return
 		}
 
@@ -82,14 +89,13 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		i := chi.URLParam(r, "itemID")
 		if i == "" {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			log.Printf("if i == .... [%s]\n", i)
 			return
 		}
 
 		id, err := strconv.Atoi(i)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			log.Println("strconv.Atoi: ", err)
+			log.Println("strconv.Atoi error: ", err)
 
 			return
 		}
@@ -98,7 +104,7 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		err = itemRequest.Bind(r.Body)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			log.Println("itemRequest.Bind: ", err)
+			log.Println("itemRequest.Bind error: ", err)
 
 			return
 		}
@@ -107,6 +113,7 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		err = h.validate.Struct(itemRequest)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Println("validate.Struct error: ", err)
 			return
 		}
 
@@ -116,6 +123,7 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 		err = h.usecase.UpdateItem(r.Context(), item)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, err.Error())
+			log.Println("usecase.UpdateItem error: ", err)
 			return
 		}
 
@@ -129,14 +137,12 @@ func (h *Handler) AllDatabases() func(w http.ResponseWriter, r *http.Request) {
 		data, err := h.usecase.AllDatabases(r.Context())
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, err.Error())
+			log.Println("usecase.AllDatabases error: ", err)
 			return
 		}
 		resp := api.ResponseBase{
 			Data: data,
-			Meta: api.MetaData{
-				Size:  len(data),
-				Total: len(data),
-			},
+			Meta: api.MetaData{Size: len(data), Total: len(data)},
 		}
 		api.RenderJSON(w, http.StatusOK, resp)
 	}

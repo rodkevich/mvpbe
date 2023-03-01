@@ -62,10 +62,10 @@ func (r *SampleDB) AddItemExampleTrx(ctx context.Context, m *model.SampleItem) e
 func (r *SampleDB) UpdateStatusExampleTrx(ctx context.Context, m *model.SampleItem) error {
 	return r.db.InTx(ctx, pgx.ReadCommitted, func(tx pgx.Tx) error {
 		sql := `
-			UPDATE 
+			UPDATE
 			    sample_item
 			SET  status = $1, end_timestamp=$2
-			WHERE 
+			WHERE
 			    item_id = $3;
 		`
 		resp, err := tx.Exec(ctx, sql, m.Status, m.FinishTime, m.ID)
@@ -117,11 +117,11 @@ func (r *SampleDB) AllDatabases(ctx context.Context) ([]string, error) {
 // GetItemExample by id
 func (r *SampleDB) GetItemExample(ctx context.Context, id string) (*model.SampleItem, error) {
 	sql := `
-			SELECT 
+			SELECT
 			    item_id, start_timestamp, end_timestamp, status
-			FROM 
+			FROM
 			    sample_item
-			WHERE 
+			WHERE
 			    item_id = $1;
 	`
 	row := r.db.Pool.QueryRow(ctx, sql, id)
