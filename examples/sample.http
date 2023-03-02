@@ -63,10 +63,10 @@ client.test("Request executed successfully", function() {
 %}
 
 ### Check update item response
-PUT http://localhost:{{http_port}}/api/v1/items/1
+PUT http://localhost:{{http_port}}/api/v1/items/450
 Content-Type: application/json
 
-{"start_time": "1", "finish_time": "1", "status": "DELETED"}
+{"status": "PENDING"}
 
 > {%
 client.test("Request executed successfully", function() {
