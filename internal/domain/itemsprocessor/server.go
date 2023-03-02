@@ -1,4 +1,4 @@
-package items_processor
+package itemsprocessor
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items-processor/datasource"
+	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
 )

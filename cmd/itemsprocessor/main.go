@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items-processor"
+	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor"
 	"github.com/rodkevich/mvpbe/internal/server"
 	"github.com/rodkevich/mvpbe/internal/setup"
 )
@@ -44,7 +44,7 @@ func runSampleApplication(ctx context.Context) error {
 		log.Fatal(err)
 	}
 
-	var cfg items_processor.Config
+	var cfg itemsprocessor.Config
 	envconfig.MustProcess("", &cfg)
 
 	// set up env remotes
@@ -61,7 +61,7 @@ func runSampleApplication(ctx context.Context) error {
 		}
 	}(ctx, env)
 
-	someServer, err := items_processor.NewServer(&cfg, env)
+	someServer, err := itemsprocessor.NewServer(&cfg, env)
 	if err != nil {
 		return fmt.Errorf("sample.NewServer: %w", err)
 	}

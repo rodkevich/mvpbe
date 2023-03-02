@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/rodkevich/mvpbe/internal/dev"
-	"github.com/rodkevich/mvpbe/internal/domain/items-producer/model"
+	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer/model"
 	"github.com/rodkevich/mvpbe/pkg/database"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"

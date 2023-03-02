@@ -1,4 +1,4 @@
-package items_producer
+package itemsproducer
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items-producer/model"
+	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer/model"
 	"github.com/rodkevich/mvpbe/pkg/validate"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"

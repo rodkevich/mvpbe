@@ -1,4 +1,4 @@
-package items_processor
+package itemsprocessor
 
 import (
 	"net/http"

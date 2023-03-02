@@ -7,10 +7,10 @@ COPY . .
 # disabling cross compilation, use linux
 # removing debug information
 RUN set -ex; \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/items_producer ./cmd/items_producer/main.go;
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/items_producer ./cmd/itemsproducer/main.go;
 
 RUN set -ex; \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/items_processor ./cmd/items_processor/main.go;
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /go/bin/items_processor ./cmd/itemsprocessor/main.go;
 
 FROM scratch
 

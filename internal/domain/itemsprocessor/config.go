@@ -1,4 +1,4 @@
-package items_processor
+package itemsprocessor
 
 import (
 	"github.com/rodkevich/mvpbe/internal/setup"

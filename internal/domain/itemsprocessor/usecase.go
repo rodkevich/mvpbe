@@ -1,4 +1,4 @@
-package items_processor
+package itemsprocessor
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items-processor/datasource"
-	"github.com/rodkevich/mvpbe/internal/domain/items-processor/model"
+	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/datasource"
+	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/model"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"

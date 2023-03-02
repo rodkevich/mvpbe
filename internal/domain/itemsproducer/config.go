@@ -1,4 +1,4 @@
-package items_producer
+package itemsproducer
 
 import (
 	"github.com/rodkevich/mvpbe/internal/setup"
