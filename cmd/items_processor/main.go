@@ -39,7 +39,7 @@ func main() {
 
 func runSampleApplication(ctx context.Context) error {
 	// init config
-	err := godotenv.Load("")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
