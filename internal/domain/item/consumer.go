@@ -42,11 +42,10 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleUsage, i
 						switch m.Status {
 						case model.ItemCreated:
 							m.Status = model.ItemPending
-
 							err = itemsUsage.UpdateItem(ctx, &m)
 							if err != nil {
 								log.Println("items consumer got error: case: ItemCreated: UpdateItem: ", err)
-								_ = msg.Reject(false)
+								_ = msg.Nack(false, true)
 								continue
 							}
 							err = msg.Ack(false)
@@ -60,7 +59,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleUsage, i
 							err = itemsUsage.UpdateItem(ctx, &m)
 							if err != nil {
 								log.Println("items consumer got error: case: ItemPending: UpdateItem: ", err)
-								_ = msg.Reject(false)
+								_ = msg.Nack(false, true)
 								continue
 							}
 							err = msg.Ack(false)
@@ -71,11 +70,10 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleUsage, i
 
 						case model.ItemComplete:
 							m.Status = model.ItemDeleted
-
 							err = itemsUsage.UpdateItem(ctx, &m)
 							if err != nil {
 								log.Println("items consumer got error: case: ItemComplete: UpdateItem: ", err)
-								_ = msg.Reject(false)
+								_ = msg.Nack(false, true)
 								continue
 							}
 							err = msg.Ack(false)
@@ -94,6 +92,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleUsage, i
 							}
 							continue
 						default:
+							_ = msg.Nack(false, true)
 							continue
 						}
 					}
