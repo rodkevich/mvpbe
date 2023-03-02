@@ -1,4 +1,4 @@
-package sample
+package item
 
 import "errors"
 

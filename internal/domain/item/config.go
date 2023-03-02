@@ -1,4 +1,4 @@
-package sample
+package item
 
 import (
 	"github.com/rodkevich/mvpbe/internal/setup"
@@ -18,10 +18,11 @@ var (
 
 const (
 	// rabbit exchange settings todo move to cfg
-	exampleItemsQueueName    = "example_items"
-	exampleItemsExchangeName = "example_items_exchange"
-	exampleItemsBindingKey   = "example_items_binding_key"
-	exampleItemsExchangeKind = "direct"
+	exampleItemsQueueName       = "example_items"
+	exampleItemsExchangeName    = "example_items_exchange"
+	exampleItemsBindingKey      = "example_items_binding_key"
+	exampleItemsExchangeKind    = "direct"
+	exampleItemsAMQPConcurrency = 10
 )
 
 // Config for application

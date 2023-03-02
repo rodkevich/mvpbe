@@ -1,4 +1,4 @@
-package sample
+package item
 
 import (
 	"bytes"
@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/rodkevich/mvpbe/internal/dev"
-	"github.com/rodkevich/mvpbe/internal/domain/sample/mocks"
-	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
+	"github.com/rodkevich/mvpbe/internal/domain/item/mocks"
+	"github.com/rodkevich/mvpbe/internal/domain/item/model"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
@@ -41,7 +41,8 @@ func TestHandler_UpdateItemHandler_Httptest_Usage_Example(t *testing.T) {
 
 		ctx := dev.TestContext(t)
 		chiCtx := chi.NewRouteContext()
-		chiCtx.URLParams.Add("itemID", "777") // for chi.URLParam getter function
+		// for chi.URLParam reads chi RouteContext
+		chiCtx.URLParams.Add("itemID", "777")
 		ctx = context.WithValue(ctx, chi.RouteCtxKey, chiCtx)
 		r = r.WithContext(ctx)
 
@@ -62,7 +63,7 @@ func TestHandler_UpdateItemHandler_Httptest_Usage_Example(t *testing.T) {
 
 		ctx := dev.TestContext(t)
 		chiCtx := chi.NewRouteContext()
-		chiCtx.URLParams.Add("itemID", "777") // for chi.URLParam getter function
+		chiCtx.URLParams.Add("itemID", "777")
 		ctx = context.WithValue(ctx, chi.RouteCtxKey, chiCtx)
 		r = r.WithContext(ctx)
 
@@ -71,9 +72,10 @@ func TestHandler_UpdateItemHandler_Httptest_Usage_Example(t *testing.T) {
 		h := NewItemsHandler(useCase)
 		h.UpdateItemHandler()(w, r)
 
-		assert.Equal(t, 400, w.Code)
 		body, err := io.ReadAll(w.Body)
 		require.NoError(t, err, "failed to read HTTP body")
+
+		assert.Equal(t, 400, w.Code)
 		assert.Equal(t, `{"error":"Bad Request"}`, string(body))
 	})
 
@@ -97,7 +99,7 @@ func TestHandler_UpdateItemHandler_Httptest_Usage_Example(t *testing.T) {
 				ctx := dev.TestContext(t)
 				chiCtx := chi.NewRouteContext()
 
-				chiCtx.URLParams.Add("itemID", test.itemID) // for chi.URLParam getter function
+				chiCtx.URLParams.Add("itemID", test.itemID)
 				ctx = context.WithValue(ctx, chi.RouteCtxKey, chiCtx)
 				r = r.WithContext(ctx)
 

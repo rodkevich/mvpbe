@@ -1,4 +1,4 @@
-package sample
+package item
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/rodkevich/mvpbe/internal/domain/sample/datasource"
+	"github.com/rodkevich/mvpbe/internal/domain/item/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
 )
@@ -37,7 +37,7 @@ func NewServer(cfg *Config, env *server.Env) (*Server, error) {
 }
 
 // Routes initialization
-func (s *Server) Routes(_ context.Context) *chi.Mux {
+func (s *Server) Routes(ctx context.Context) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -45,27 +45,10 @@ func (s *Server) Routes(_ context.Context) *chi.Mux {
 
 	ds := datasource.New(s.env.Database())
 	pbl := s.env.Publisher()
-	ch := pbl.GetChannel()
-
-	// todo make compact
-	log.Println("configuring rabbit ")
-	err := ch.ExchangeDeclare(exampleItemsExchangeName, exampleItemsExchangeKind, true, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.ExchangeDeclare")
-	}
-	queue, err := ch.QueueDeclare(exampleItemsQueueName, true, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.QueueDeclare")
-	}
-	err = ch.QueueBind(queue.Name, exampleItemsBindingKey, exampleItemsExchangeName, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.QueueBind")
-	}
-
-	items := NewItemsHandler(NewItemsDomain(ds, pbl))
 
 	log.Println("configuring routes")
 
+	items := NewItemsHandler(NewItemsDomain(ctx, ds, pbl))
 	r.Route("/api/v1/items", func(r chi.Router) {
 		r.Get("/health", server.HandleHealth(s.env.Database()))
 		r.Get("/liveness", items.LivenessHandler())

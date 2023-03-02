@@ -54,7 +54,7 @@ client.test("Request executed successfully", function() {
 
 
 ### Check get item response
-GET http://localhost:{{http_port}}/api/v1/items/1
+GET http://localhost:{{http_port}}/api/v1/items/2
 
 > {%
 client.test("Request executed successfully", function() {

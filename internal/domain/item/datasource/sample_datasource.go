@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
+	"github.com/rodkevich/mvpbe/internal/domain/item/model"
 	"github.com/rodkevich/mvpbe/pkg/database"
 )
 
@@ -116,7 +116,7 @@ func (r *SampleDB) AllDatabases(ctx context.Context) ([]string, error) {
 }
 
 // GetItemExample by id
-func (r *SampleDB) GetItemExample(ctx context.Context, id string) (*model.SampleItem, error) {
+func (r *SampleDB) GetItemExample(ctx context.Context, id int) (*model.SampleItem, error) {
 	sql := `
 			SELECT
 			    item_id, start_timestamp, end_timestamp, status
@@ -129,7 +129,7 @@ func (r *SampleDB) GetItemExample(ctx context.Context, id string) (*model.Sample
 
 	var m model.SampleItem
 	if err := row.Scan(&m.ID, &m.StartTime, &m.FinishTime, &m.Status); err != nil {
-		return nil, fmt.Errorf("item id %s: scan failed: %w", id, err)
+		return nil, fmt.Errorf("item id %d: scan failed: %w", id, err)
 	}
 
 	return &m, nil

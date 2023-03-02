@@ -1,4 +1,4 @@
-package sample
+package item
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/rodkevich/mvpbe/internal/domain/sample/model"
+	"github.com/rodkevich/mvpbe/internal/domain/item/model"
 	"github.com/rodkevich/mvpbe/pkg/validate"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
@@ -38,13 +38,14 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		if _, err := strconv.Atoi(id); err != nil {
+		itemID, err := strconv.Atoi(id)
+		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			log.Println("strconv.Atoi: ", err)
 			return
 		}
 
-		item, err := h.usecase.GetItem(r.Context(), id)
+		item, err := h.usecase.GetItem(r.Context(), itemID)
 		if err != nil {
 			if errors.Is(err, errDeletedItem) {
 				api.Error(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
