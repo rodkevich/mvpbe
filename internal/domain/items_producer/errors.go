@@ -1,4 +1,4 @@
-package item
+package items_producer
 
 import "errors"
 

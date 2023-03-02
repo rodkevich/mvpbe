@@ -1,4 +1,4 @@
-package item
+package items_processor
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/rodkevich/mvpbe/internal/domain/item/model"
+	"github.com/rodkevich/mvpbe/internal/domain/items_processor/model"
 )
 
-func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleUsage, itemsCh <-chan amqp.Delivery) {
+func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleProcessUsage, itemsCh <-chan amqp.Delivery) {
 	eg, ctx := errgroup.WithContext(ctx)
 	for i := 0; i <= exampleItemsAMQPConcurrency; i++ {
 		eg.Go(func(ctx context.Context, itemsCh <-chan amqp.Delivery, workerID int) func() error {

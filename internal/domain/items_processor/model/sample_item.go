@@ -5,11 +5,10 @@ import (
 )
 
 var (
-	ItemCreated       = "CREATED"
-	ItemPending       = "PENDING"
-	ItemComplete      = "COMPLETE"
-	ItemDeletePending = "DEL_PEND"
-	ItemDeleted       = "DELETED"
+	ItemCreated  = "CREATED"
+	ItemPending  = "PENDING"
+	ItemComplete = "COMPLETE"
+	ItemDeleted  = "DELETED"
 )
 
 type SampleItem struct {

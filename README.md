@@ -7,7 +7,7 @@ Dockertest usage for db tests examples: [link](https://github.com/rodkevich/mvpb
 ### Docker:
 Docker must be started on your machine to allow dockertest spawn containers.
 
-You can skip dockertest test-cases with -short flag for tests or through env var settings.
+You can skip dockertest test-cases with `-short` flag for tests or through env var settings.
 
 Example command:
 

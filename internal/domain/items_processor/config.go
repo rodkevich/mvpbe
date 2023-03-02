@@ -1,4 +1,4 @@
-package item
+package items_processor
 
 import (
 	"github.com/rodkevich/mvpbe/internal/setup"
@@ -18,10 +18,10 @@ var (
 
 const (
 	// rabbit settings // TODO move to cfg
-	exampleItemsQueueName       = "example_items"
+	exampleItemsQueueName       = "example_items_processor"
 	exampleItemsExchangeName    = "example_items_exchange"
 	exampleItemsBindingKey      = "example_items_binding_key"
-	exampleItemsConsumerName    = "items-consumer-0001"
+	exampleItemsConsumerName    = "items_processor"
 	exampleItemsExchangeKind    = "direct"
 	exampleItemsAMQPConcurrency = 10
 )

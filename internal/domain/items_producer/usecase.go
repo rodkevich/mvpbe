@@ -1,4 +1,4 @@
-package item
+package items_producer
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/internal/domain/item/datasource"
-	"github.com/rodkevich/mvpbe/internal/domain/item/model"
+	"github.com/rodkevich/mvpbe/internal/domain/items_producer/datasource"
+	"github.com/rodkevich/mvpbe/internal/domain/items_producer/model"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
@@ -111,18 +111,17 @@ func (i *Items) AllDatabases(ctx context.Context) ([]string, error) {
 
 // NewItemsDomain constructor
 func NewItemsDomain(ctx context.Context, repo *datasource.SampleDB, pbl rabbitmq.AMQPPublisher) *Items {
-	channel := pbl.GetChannel()
-	configureExchanges(channel)
+	configureExchanges(pbl.GetChannel())
 	itemsUsage := &Items{db: repo, rmq: pbl}
 
-	itemsCh, err := channel.Consume(exampleItemsQueueName, exampleItemsConsumerName, false, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := channel.Consume")
-	}
-
-	go func() {
-		runExampleItemsConsumer(ctx, itemsUsage, itemsCh)
-	}()
+	// itemsCh, err := channel.Consume(exampleItemsQueueName, exampleItemsConsumerName, false, false, false, false, nil)
+	// if err != nil {
+	// 	log.Fatal("err := channel.Consume")
+	// }
+	//
+	// go func() {
+	// 	runExampleItemsConsumer(ctx, itemsUsage, itemsCh)
+	// }()
 
 	return itemsUsage
 }

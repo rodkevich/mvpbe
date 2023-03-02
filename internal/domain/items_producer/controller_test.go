@@ -1,4 +1,4 @@
-package item
+package items_producer
 
 import (
 	"bytes"
@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/rodkevich/mvpbe/internal/dev"
-	"github.com/rodkevich/mvpbe/internal/domain/item/mocks"
-	"github.com/rodkevich/mvpbe/internal/domain/item/model"
+	"github.com/rodkevich/mvpbe/internal/domain/items_producer/mocks"
+	"github.com/rodkevich/mvpbe/internal/domain/items_producer/model"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
