@@ -17,10 +17,11 @@ var (
 )
 
 const (
-	// rabbit exchange settings todo move to cfg
+	// rabbit settings // TODO move to cfg
 	exampleItemsQueueName       = "example_items"
 	exampleItemsExchangeName    = "example_items_exchange"
 	exampleItemsBindingKey      = "example_items_binding_key"
+	exampleItemsConsumerName    = "items-consumer-0001"
 	exampleItemsExchangeKind    = "direct"
 	exampleItemsAMQPConcurrency = 10
 )

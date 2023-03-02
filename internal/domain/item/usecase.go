@@ -3,12 +3,10 @@ package item
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/rodkevich/mvpbe/internal/domain/item/datasource"
 	"github.com/rodkevich/mvpbe/internal/domain/item/model"
@@ -63,7 +61,24 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 // UpdateItem ...
 func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 	m.FinishTime = api.TimeNow()
-	return i.db.UpdateStatusExampleTrx(ctx, m)
+	err := i.db.UpdateStatusExampleTrx(ctx, m)
+	if err != nil {
+		return fmt.Errorf("remote update failed: %w", err)
+	}
+
+	dataBytes, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("json.marshal failed: %w", err)
+	}
+
+	return i.rmq.Publish(
+		ctx, exampleItemsExchangeName, exampleItemsBindingKey,
+		amqp.Publishing{
+			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+			Timestamp: api.TimeNow(),
+			Body:      dataBytes,
+		})
+
 }
 
 // GetItem ...
@@ -101,63 +116,13 @@ func NewItemsDomain(ctx context.Context, repo *datasource.SampleDB, pbl rabbitmq
 	configureExchanges(channel)
 	itemsUsage := &Items{db: repo, rmq: pbl}
 
-	itemsCh, err := channel.Consume(
-		exampleItemsQueueName,
-		"items-consumer-0001",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
+	itemsCh, err := channel.Consume(exampleItemsQueueName, exampleItemsConsumerName, false, false, false, false, nil)
 	if err != nil {
 		log.Fatal("err := channel.Consume")
 	}
 
 	go func() {
-		eg, ctx := errgroup.WithContext(ctx)
-		for i := 0; i <= exampleItemsAMQPConcurrency; i++ {
-			eg.Go(func(ctx context.Context, itemsCh <-chan amqp.Delivery, workerID int) func() error {
-				log.Printf("starting consumer id: %d, for items queue: %s", workerID, exampleItemsQueueName)
-
-				return func() error {
-					for {
-						select {
-						case <-ctx.Done():
-							log.Printf("items consumer ctx done: %v", ctx.Err())
-							return ctx.Err()
-
-						case msg, ok := <-itemsCh:
-							if !ok {
-								log.Printf("NOT OK items channel closed for queue: %s", exampleItemsQueueName)
-								return errors.New("items channel closed")
-							}
-							log.Printf("Items consumer: id: %d, msg data: %s, headers: %+v", workerID, string(msg.Body), msg.Headers)
-
-							m := model.SampleItem{}
-							err := json.Unmarshal(msg.Body, &m)
-							if err != nil {
-								return err
-							}
-							m.Status = model.ItemPending
-							err = itemsUsage.UpdateItem(ctx, &m)
-							if err != nil {
-								return err
-							}
-							mod, err := itemsUsage.GetItem(ctx, m.ID)
-							if err != nil {
-								return err
-							}
-							log.Printf("FINAL item view: %+v\n", mod)
-
-							log.Printf("Consumer [ACK] delivery: id: %d, msg data: %s, headers: %+v", workerID, string(msg.Body), msg.Headers)
-							_ = msg.Ack(false)
-						}
-					}
-				}
-			}(ctx, itemsCh, i))
-		}
-		_ = eg.Wait()
+		runExampleItemsConsumer(ctx, itemsUsage, itemsCh)
 	}()
 
 	return itemsUsage
