@@ -1,7 +1,7 @@
 ### Simple project example  
 
-Httptest usage for api tests examples: [link](https://github.com/rodkevich/mvpbe/blob/master/internal/domain/sample/controller_test.go)  
-Dockertest usage for db tests examples: [link](https://github.com/rodkevich/mvpbe/blob/master/internal/domain/sample/datasource/sample_datasource_test.go)  
+Httptest usage for api tests examples: [link](https://github.com/rodkevich/mvpbe/blob/master/internal/domain/item/controller_test.go)  
+Dockertest usage for db tests examples: [link](https://github.com/rodkevich/mvpbe/blob/master/internal/domain/item/datasource/sample_datasource_test.go)  
 
 #### Docker:  
 Docker must be started on your machine to allow dockertest spawn containers.  
