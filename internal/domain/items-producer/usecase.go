@@ -8,8 +8,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items_producer/datasource"
-	"github.com/rodkevich/mvpbe/internal/domain/items_producer/model"
+	"github.com/rodkevich/mvpbe/internal/domain/items-producer/datasource"
+	"github.com/rodkevich/mvpbe/internal/domain/items-producer/model"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"

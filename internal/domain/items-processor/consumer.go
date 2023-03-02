@@ -9,7 +9,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items_processor/model"
+	"github.com/rodkevich/mvpbe/internal/domain/items-processor/model"
 )
 
 func runExampleItemsConsumer(ctx context.Context, itemsUsage ItemsSampleProcessUsage, itemsCh <-chan amqp.Delivery) {

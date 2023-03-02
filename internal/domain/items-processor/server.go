@@ -1,4 +1,4 @@
-package items_producer
+package items_processor
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/rodkevich/mvpbe/internal/domain/items_producer/datasource"
+	"github.com/rodkevich/mvpbe/internal/domain/items-processor/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
 )
@@ -52,18 +52,7 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 	r.Route("/api/v1/items", func(r chi.Router) {
 		r.Get("/health", server.HandleHealth(s.env.Database()))
 		r.Get("/liveness", items.LivenessHandler())
-		r.Get("/databases", items.AllDatabases())
 		r.Handle("/metrics", promhttp.Handler())
-
-		// items:
-		r.Post("/", items.CreateItemHandler())
-		// r.Get("/", handler.ListItemHandler())
-		r.Route("/{itemID}", func(r chi.Router) {
-			r.Get("/", items.GetItemHandler())
-			r.Put("/", items.UpdateItemHandler())
-			// r.Delete("/", handler.DeleteItemHandler())
-		})
 	})
-
 	return r
 }
