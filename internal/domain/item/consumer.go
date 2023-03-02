@@ -45,8 +45,8 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage *Items, itemsCh <-c
 						switch m.Status {
 						case model.ItemCreated:
 							time.Sleep(duration)
-							pending := model.ItemPending
-							m.Status = pending
+							m.Status = model.ItemPending
+
 							err = itemsUsage.UpdateItem(ctx, &m)
 							if err != nil {
 								log.Println("items consumer got error with model.ItemCreated: itemsUsage.UpdateItem: ", err)
@@ -60,9 +60,12 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage *Items, itemsCh <-c
 
 						case model.ItemPending:
 							time.Sleep(duration)
-							pending := model.ItemComplete
-							m.Status = pending
+							m.Status = model.ItemComplete
 							err = itemsUsage.UpdateItem(ctx, &m)
+							if err != nil {
+								log.Println("items consumer got error with model.ItemPending: itemsUsage.UpdateItem: ", err)
+								continue
+							}
 							err = msg.Ack(false)
 							if err != nil {
 								log.Println("items consumer got error with case model.ItemPending: msg.Ack(false): ", err)
@@ -71,8 +74,8 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage *Items, itemsCh <-c
 
 						case model.ItemComplete:
 							time.Sleep(duration)
-							pending := model.ItemDeleted
-							m.Status = pending
+							m.Status = model.ItemDeleted
+
 							err = itemsUsage.UpdateItem(ctx, &m)
 							if err != nil {
 								log.Println("items consumer got error with model.ItemComplete: itemsUsage.UpdateItem: ", err)

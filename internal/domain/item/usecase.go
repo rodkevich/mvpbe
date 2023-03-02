@@ -78,7 +78,6 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 			Timestamp: api.TimeNow(),
 			Body:      dataBytes,
 		})
-
 }
 
 // GetItem ...
