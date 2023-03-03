@@ -14,3 +14,8 @@ type Config struct {
 	WriteTimeout      time.Duration `envconfig:"HTTP_WRITE_TIMEOUT" default:"10s"`
 	IdleTimeout       time.Duration `envconfig:"HTTP_IDLE_TIMEOUT" default:"120s"`
 }
+
+// HTTPConfig ...
+func (c *Config) HTTPConfig() *Config {
+	return c
+}
