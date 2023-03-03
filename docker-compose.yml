@@ -26,6 +26,20 @@ services:
       postgres:
         condition: service_healthy
 
+  migrator:
+    <<: *app
+    container_name: migrator
+    entrypoint: ["./migrator"]
+    ports:
+      - 8082:${HTTP_PORT}
+    volumes:
+      - ./migrations:/migrations # let it be volumes for now
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
   postgres:
     container_name: database
     image: "postgres:15-alpine"
