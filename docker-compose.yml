@@ -53,8 +53,8 @@ services:
     healthcheck:
       test: rabbitmq-diagnostics -q status && rabbitmq-diagnostics -q check_local_alarms
       interval: 30s
-      timeout: 30s
-      retries: 3
+      timeout: 10s
+      retries: 5
     ports:
       - "5672:5672"
       - "15672:15672"
