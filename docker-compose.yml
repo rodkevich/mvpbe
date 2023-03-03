@@ -9,13 +9,9 @@ services:
       context: .
       dockerfile: builders/docker/Dockerfile
     entrypoint: ["./items_producer"]
-#    env_file:
-#      - ./builders/docker/.env
     ports:
       - 8080:${HTTP_PORT}
     depends_on:
-      - postgres
-      - rabbitmq
       - processor
 
   processor:
@@ -26,6 +22,8 @@ services:
       - 8081:${HTTP_PORT}
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   postgres:

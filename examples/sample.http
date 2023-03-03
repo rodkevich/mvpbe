@@ -1,5 +1,5 @@
 ### Check liveness response
-GET http://localhost:{{http_port}}/api/v1/items/liveness
+GET http://localhost:{{http_port_consumer}}/api/v1/items/liveness
 
 > {%
 client.test("Request executed successfully", function() {
@@ -8,7 +8,16 @@ client.test("Request executed successfully", function() {
 %}
 
 ### Check metrics response
-GET http://localhost:{{http_port}}/api/v1/items/metrics
+GET http://localhost:{{http_port_consumer}}/api/v1/items/metrics
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Check health response
+GET http://localhost:{{http_port_consumer}}/api/v1/items/health
 
 > {%
 client.test("Request executed successfully", function() {
@@ -17,7 +26,7 @@ client.test("Request executed successfully", function() {
 %}
 
 ### Check databases response
-GET http://localhost:{{http_port}}/api/v1/items/databases
+GET http://localhost:{{http_port_producer}}/api/v1/items/databases
 
 > {%
 client.test("Request executed successfully", function() {
@@ -34,17 +43,8 @@ client.test("Headers option exists", function() {
 });
 %}
 
-### Check health response
-GET http://localhost:{{http_port}}/api/v1/items/health
-
-> {%
-client.test("Request executed successfully", function() {
-  client.assert(response.status === 200, "Response status is not 200");
-});
-%}
-
 ### Check create item response
-POST http://localhost:{{http_port}}/api/v1/items
+POST http://localhost:{{http_port_producer}}/api/v1/items
 
 > {%
 client.test("Request executed successfully", function() {
@@ -54,7 +54,7 @@ client.test("Request executed successfully", function() {
 
 
 ### Check get item response
-GET http://localhost:{{http_port}}/api/v1/items/2
+GET http://localhost:{{http_port_producer}}/api/v1/items/2
 
 > {%
 client.test("Request executed successfully", function() {
@@ -63,7 +63,7 @@ client.test("Request executed successfully", function() {
 %}
 
 ### Check update item response
-PUT http://localhost:{{http_port}}/api/v1/items/450
+PUT http://localhost:{{http_port_producer}}/api/v1/items/70
 Content-Type: application/json
 
 {"status": "PENDING"}
