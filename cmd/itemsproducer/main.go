@@ -61,7 +61,7 @@ func runSampleApplication(ctx context.Context) error {
 		}
 	}(ctx, env)
 
-	someServer, err := itemsproducer.NewServer(&cfg, env)
+	itemsProducerServer, err := itemsproducer.NewServer(&cfg, env)
 	if err != nil {
 		return fmt.Errorf("sample.NewServer: %w", err)
 	}
@@ -72,5 +72,5 @@ func runSampleApplication(ctx context.Context) error {
 	}
 
 	log.Println("server listening", "port", cfg.HTTP.Port)
-	return srv.ServeHTTPHandler(ctx, someServer.Routes(ctx))
+	return srv.ServeHTTPHandler(ctx, itemsProducerServer.Routes(ctx))
 }
