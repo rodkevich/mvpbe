@@ -13,6 +13,7 @@ services:
       - 8080:${HTTP_PORT}
     depends_on:
       - processor
+      - migrator
 
   processor:
     <<: *app
@@ -33,10 +34,8 @@ services:
     ports:
       - 8082:${HTTP_PORT}
     volumes:
-      - ./migrations:/migrations # let it be volumes for now
+      - ./migrations:/migrations # let it be volume for now
     depends_on:
-      rabbitmq:
-        condition: service_healthy
       postgres:
         condition: service_healthy
 

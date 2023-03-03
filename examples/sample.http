@@ -54,7 +54,7 @@ client.test("Request executed successfully", function() {
 
 
 ### Check get item response
-GET http://localhost:{{http_port_producer}}/api/v1/items/2
+GET http://localhost:{{http_port_producer}}/api/v1/items/1
 
 > {%
 client.test("Request executed successfully", function() {
@@ -63,7 +63,7 @@ client.test("Request executed successfully", function() {
 %}
 
 ### Check update item response
-PUT http://localhost:{{http_port_producer}}/api/v1/items/70
+PUT http://localhost:{{http_port_producer}}/api/v1/items/1
 Content-Type: application/json
 
 {"status": "PENDING"}
