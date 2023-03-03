@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 
 services:
 
@@ -25,8 +25,8 @@ services:
     ports:
       - 8081:${HTTP_PORT}
     depends_on:
-      - postgres
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   postgres:
     container_name: database
@@ -52,7 +52,7 @@ services:
     image: rabbitmq:3.9-management-alpine
     healthcheck:
       test: rabbitmq-diagnostics -q status && rabbitmq-diagnostics -q check_local_alarms
-      interval: 60s
+      interval: 30s
       timeout: 30s
       retries: 3
     ports:
