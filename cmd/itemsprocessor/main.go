@@ -23,21 +23,21 @@ func main() {
 	defer func() {
 		done()
 		if r := recover(); r != nil {
-			log.Fatal("application got panic", "panic", r)
+			log.Fatal("itemsProcessor got panic", "panic", r)
 		}
 	}()
 
 	// run app
-	err := runSampleApplication(ctx)
+	err := runItemsProcessorApplication(ctx)
 	done()
 	if err != nil {
 		log.Println(err)
 	}
 
-	log.Println("successful application shutdown")
+	log.Println("successful itemsProcessor shutdown")
 }
 
-func runSampleApplication(ctx context.Context) error {
+func runItemsProcessorApplication(ctx context.Context) error {
 	// init config
 	err := godotenv.Load()
 	if err != nil {
@@ -61,16 +61,16 @@ func runSampleApplication(ctx context.Context) error {
 		}
 	}(ctx, env)
 
-	someServer, err := itemsprocessor.NewServer(&cfg, env)
+	itemsProcessorServer, err := itemsprocessor.NewServer(&cfg, env)
 	if err != nil {
-		return fmt.Errorf("sample.NewServer: %w", err)
+		return fmt.Errorf("itemsprocessor.NewServer: %w", err)
 	}
 
 	srv, err := server.New(cfg.HTTP.Port)
 	if err != nil {
-		return fmt.Errorf("server.NewEnv: %w", err)
+		return fmt.Errorf("server.New: %w", err)
 	}
 
 	log.Println("server listening", "port", cfg.HTTP.Port)
-	return srv.ServeHTTPHandler(ctx, someServer.Routes(ctx))
+	return srv.ServeHTTPHandler(ctx, itemsProcessorServer.Routes(ctx))
 }

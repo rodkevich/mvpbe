@@ -48,7 +48,7 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 
 	log.Println("configuring routes")
 
-	items := NewItemsHandler(NewItemsDomain(ctx, ds, pbl))
+	items := NewItemsHandler(NewItemsDomain(ds, pbl))
 	r.Route("/api/v1/items", func(r chi.Router) {
 		r.Get("/health", server.HandleHealth(s.env.Database()))
 		r.Get("/liveness", items.LivenessHandler())

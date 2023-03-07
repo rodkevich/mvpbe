@@ -43,6 +43,8 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middlewares.JSONHeaderContentType)
 
+	r.Mount("/debug", middleware.Profiler())
+
 	ds := datasource.New(s.env.Database())
 	pbl := s.env.Publisher()
 
@@ -54,5 +56,6 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 		r.Get("/liveness", items.LivenessHandler())
 		r.Handle("/metrics", promhttp.Handler())
 	})
+
 	return r
 }

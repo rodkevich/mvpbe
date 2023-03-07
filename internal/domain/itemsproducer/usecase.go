@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
@@ -49,8 +48,7 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 		return fmt.Errorf("json.marshal failed: %w", err)
 	}
 
-	return i.rmq.Publish(
-		ctx, exampleItemsExchangeName, exampleItemsBindingKey,
+	return i.rmq.Publish(ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
 			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
 			Timestamp: api.TimeNow(),
@@ -71,8 +69,7 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 		return fmt.Errorf("json.marshal failed: %w", err)
 	}
 
-	return i.rmq.Publish(
-		ctx, exampleItemsExchangeName, exampleItemsBindingKey,
+	return i.rmq.Publish(ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
 			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
 			Timestamp: api.TimeNow(),
@@ -110,34 +107,8 @@ func (i *Items) AllDatabases(ctx context.Context) ([]string, error) {
 }
 
 // NewItemsDomain constructor
-func NewItemsDomain(ctx context.Context, repo *datasource.SampleDB, pbl rabbitmq.AMQPPublisher) *Items {
-	configureExchanges(pbl.GetChannel())
+func NewItemsDomain(repo *datasource.SampleDB, pbl rabbitmq.AMQPPublisher) *Items {
 	itemsUsage := &Items{db: repo, rmq: pbl}
 
-	// itemsCh, err := channel.Consume(exampleItemsQueueName, exampleItemsConsumerName, false, false, false, false, nil)
-	// if err != nil {
-	// 	log.Fatal("err := channel.Consume")
-	// }
-	//
-	// go func() {
-	// 	runExampleItemsConsumer(ctx, itemsUsage, itemsCh)
-	// }()
-
 	return itemsUsage
-}
-
-func configureExchanges(ch *amqp.Channel) {
-	log.Println("configuring rabbit ")
-	err := ch.ExchangeDeclare(exampleItemsExchangeName, exampleItemsExchangeKind, true, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.ExchangeDeclare")
-	}
-	queue, err := ch.QueueDeclare(exampleItemsQueueName, true, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.QueueDeclare")
-	}
-	err = ch.QueueBind(queue.Name, exampleItemsBindingKey, exampleItemsExchangeName, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.QueueBind")
-	}
 }

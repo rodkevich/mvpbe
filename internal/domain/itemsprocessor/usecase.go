@@ -40,8 +40,20 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 		return fmt.Errorf("json.marshal failed: %w", err)
 	}
 
+	// if item was deleted from processing publish it somewhere in another que
+	if m.Status == model.ItemDeleted {
+		return i.rmq.Publish(
+			ctx, exExchangeNameItems, exBindingKeyItemsReadiness,
+			amqp.Publishing{
+				Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+				Timestamp: api.TimeNow(),
+				Body:      dataBytes,
+			})
+	}
+
+	// publish to workers que
 	return i.rmq.Publish(
-		ctx, exampleItemsExchangeName, exampleItemsBindingKey,
+		ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
 			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
 			Timestamp: api.TimeNow(),
@@ -60,7 +72,7 @@ func NewItemsDomain(ctx context.Context, repo *datasource.SampleProcessorDB, pbl
 	configureExchanges(channel)
 	itemsUsage := &Items{db: repo, rmq: pbl}
 
-	itemsCh, err := channel.Consume(exampleItemsQueueName, exampleItemsConsumerName, false, false, false, false, nil)
+	itemsCh, err := channel.Consume(exQueueNameItems, exConsumerNameItems, false, false, false, false, nil)
 	if err != nil {
 		log.Fatal("err := channel.Consume")
 	}
@@ -74,16 +86,24 @@ func NewItemsDomain(ctx context.Context, repo *datasource.SampleProcessorDB, pbl
 
 func configureExchanges(ch *amqp.Channel) {
 	log.Println("configuring rabbit ")
-	err := ch.ExchangeDeclare(exampleItemsExchangeName, exampleItemsExchangeKind, true, false, false, false, nil)
+	err := ch.ExchangeDeclare(exExchangeNameItems, exExchangeKindItems, true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("err := ch.ExchangeDeclare")
+		log.Fatal("err := ch.ExchangeDeclare: ", err)
 	}
-	queue, err := ch.QueueDeclare(exampleItemsQueueName, true, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.QueueDeclare")
-	}
-	err = ch.QueueBind(queue.Name, exampleItemsBindingKey, exampleItemsExchangeName, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.QueueBind")
+
+	// configure some ques and their bindings
+	for k, v := range map[string]string{
+		exQueueNameItems:   exBindingKeyItems,
+		exQueueNameResults: exBindingKeyItemsReadiness,
+	} {
+		q, err := ch.QueueDeclare(k, true, false, false, false, nil)
+		if err != nil {
+			log.Fatal("err := ch.QueueDeclare: ", err)
+		}
+
+		err = ch.QueueBind(q.Name, v, exExchangeNameItems, false, nil)
+		if err != nil {
+			log.Fatal("err := ch.QueueBind: ", err)
+		}
 	}
 }

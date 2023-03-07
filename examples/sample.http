@@ -73,3 +73,7 @@ client.test("Request executed successfully", function() {
   client.assert(response.status === 200, "Response status is not 200");
 });
 %}
+
+### Check pprof response
+GET http://localhost:{{http_port_consumer}}/debug
+Content-Type: application/json

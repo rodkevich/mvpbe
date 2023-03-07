@@ -17,13 +17,15 @@ var (
 )
 
 const (
-	// rabbit settings // TODO move to cfg
-	exampleItemsQueueName       = "example_items_processor"
-	exampleItemsExchangeName    = "example_items_exchange"
-	exampleItemsBindingKey      = "example_items_binding_key"
-	exampleItemsConsumerName    = "items_processor"
-	exampleItemsExchangeKind    = "direct"
-	exampleItemsAMQPConcurrency = 10
+	// example rabbit settings // TODO move to cfg
+	exQueueNameItems           = "example_items"
+	exQueueNameResults         = "example_results"
+	exExchangeNameItems        = "example_items_exchange"
+	exBindingKeyItems          = "example_items_binding_key"
+	exBindingKeyItemsReadiness = "example_items_binding_readiness_key"
+	exConsumerNameItems        = "items_processor"
+	exExchangeKindItems        = "direct"
+	exAMQPConcurrencyItems     = 10
 )
 
 // Config for application

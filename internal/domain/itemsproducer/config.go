@@ -17,13 +17,8 @@ var (
 )
 
 const (
-	// rabbit settings // TODO move to cfg
-	exampleItemsQueueName       = "example_items"
-	exampleItemsExchangeName    = "example_items_exchange"
-	exampleItemsBindingKey      = "example_items_binding_key"
-	exampleItemsConsumerName    = "items-producer"
-	exampleItemsExchangeKind    = "direct"
-	exampleItemsAMQPConcurrency = 10
+	exExchangeNameItems = "example_items_exchange"
+	exBindingKeyItems   = "example_items_binding_key"
 )
 
 // Config for application
