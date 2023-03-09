@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
@@ -44,7 +43,7 @@ func (i *Items) UpdateItem(ctx context.Context, proc *model.SomeProcessingTask) 
 	// if item was deleted from processing publish it somewhere in another que
 	if proc.Status == model.ItemDeleted {
 		return i.rmq.Publish(
-			ctx, exExchangeNameItems, exBindingKeyItemsReadiness,
+			ctx, exExchangeName, exBindingKeyItemsReadiness,
 			amqp.Publishing{
 				Headers: map[string]interface{}{
 					"example-item-trace-id": fmt.Sprintf(api.ExampleItemsTracingFormat, proc.ID),
@@ -56,7 +55,7 @@ func (i *Items) UpdateItem(ctx context.Context, proc *model.SomeProcessingTask) 
 
 	// publish to workers que
 	return i.rmq.Publish(
-		ctx, exExchangeNameItems, exBindingKeyItems,
+		ctx, exExchangeName, exBindingKeyItemsProcessing,
 		amqp.Publishing{
 			Headers: map[string]interface{}{
 				"example-item-trace-id": fmt.Sprintf(api.ExampleItemsTracingFormat, proc.ID),
@@ -72,43 +71,7 @@ func (i *Items) Readiness() error {
 }
 
 // NewItemsDomain constructor
-func NewItemsDomain(ctx context.Context, repo *datasource.SampleProcessorDB, pbl rabbitmq.AMQPPublisher) *Items {
-	channel := pbl.GetChannel()
-	configureExchanges(channel)
+func NewItemsDomain(repo *datasource.SampleProcessorDB, pbl rabbitmq.AMQPPublisher) *Items {
 	itemsUsage := &Items{db: repo, rmq: pbl}
-
-	itemsCh, err := channel.Consume(exQueueNameItems, exConsumerNameItems, false, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := channel.Consume")
-	}
-
-	go func() {
-		runExampleItemsConsumer(ctx, itemsUsage, itemsCh)
-	}()
-
 	return itemsUsage
-}
-
-func configureExchanges(ch *amqp.Channel) {
-	log.Println("Configuring rabbitmq ")
-	err := ch.ExchangeDeclare(exExchangeNameItems, exExchangeKindItems, true, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := ch.ExchangeDeclare: ", err)
-	}
-
-	// configure some ques and their bindings
-	for k, v := range map[string]string{
-		exQueueNameItems:   exBindingKeyItems,
-		exQueueNameResults: exBindingKeyItemsReadiness,
-	} {
-		q, err := ch.QueueDeclare(k, true, false, false, false, nil)
-		if err != nil {
-			log.Fatal("err := ch.QueueDeclare: ", err)
-		}
-
-		err = ch.QueueBind(q.Name, v, exExchangeNameItems, false, nil)
-		if err != nil {
-			log.Fatal("err := ch.QueueBind: ", err)
-		}
-	}
 }

@@ -16,9 +16,9 @@ import (
 func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh <-chan amqp.Delivery) {
 	eg, ctx := errgroup.WithContext(ctx)
 
-	for i := 0; i <= exAMQPConcurrencyItems; i++ {
+	for i := 0; i <= exAMQPConcurrency; i++ {
 		eg.Go(func(ctx context.Context, itemsCh <-chan amqp.Delivery, workerID int) func() error {
-			log.Printf("starting consumer id: %d, for items queue: %s", workerID, exQueueNameItems)
+			log.Printf("starting consumer id: %d, for items queue: %s", workerID, exQueueNameProcess)
 
 			return func() error {
 				for {
@@ -29,7 +29,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh 
 
 					case msg, ok := <-itemsCh:
 						if !ok {
-							log.Printf("error: items channel closed for queue: %s", exQueueNameItems)
+							log.Printf("error: items channel closed for queue: %s", exQueueNameProcess)
 							return errors.New("items channel closed")
 						}
 
