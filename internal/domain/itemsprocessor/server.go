@@ -8,11 +8,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
+	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 )
 
 // Server representation
@@ -47,20 +47,11 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 
 	r.Mount("/debug", middleware.Profiler())
 
+	configureExchange(s.env.Publisher())
 	ds := datasource.New(s.env.Database())
-	ch := s.env.Publisher().GetChannel()
-	configureExchange(ch)
-
-	itemsCh, err := ch.Consume(exQueueNameProcess, exConsumerName, false, false, false, false, nil)
-	if err != nil {
-		log.Fatal("err := channel.Consume")
-	}
-
 	itemsUsage := NewItemsDomain(ds, s.env.Publisher())
 
-	go func() {
-		runExampleItemsConsumer(ctx, itemsUsage, itemsCh)
-	}()
+	go runExampleItemsConsumer(ctx, itemsUsage, s.env.Publisher())
 
 	handler := NewItemsHandler(itemsUsage)
 	r.Route("/api/v1/items", func(r chi.Router) {
@@ -71,8 +62,9 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 	return r
 }
 
-func configureExchange(channel *amqp.Channel) {
-	log.Println("Configuring rabbitmq ")
+func configureExchange(pub rabbitmq.AMQPPublisher) {
+	log.Println("Configuring rabbitmq")
+	channel := pub.GetChannel()
 	err := channel.ExchangeDeclare(exExchangeName, exExchangeKind, true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("err := ch.ExchangeDeclare: ", err)

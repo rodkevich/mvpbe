@@ -11,11 +11,17 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/model"
+	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 )
 
-func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh <-chan amqp.Delivery) {
+func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, pub rabbitmq.AMQPPublisher) {
+	// setup consume from items channel
+	itemsCh, err := pub.GetChannel().Consume(exQueueNameProcess, exConsumerName, false, false, false, false, nil)
+	if err != nil {
+		log.Fatal("err := channel.Consume")
+	}
+	// run some amount of workers concurrently
 	eg, ctx := errgroup.WithContext(ctx)
-
 	for i := 0; i <= exAMQPConcurrency; i++ {
 		eg.Go(func(ctx context.Context, itemsCh <-chan amqp.Delivery, workerID int) func() error {
 			log.Printf("starting consumer id: %d, for items queue: %s", workerID, exQueueNameProcess)
