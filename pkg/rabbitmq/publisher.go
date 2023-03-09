@@ -7,7 +7,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-//go:generate mockery --name AMQPPublisher --case underscore  --output mocks/
+//go:generate mockery --name AMQPPublisher --case underscore --output mocks/
 
 // AMQPPublisher ...
 type AMQPPublisher interface {
