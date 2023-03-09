@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	v1 "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
 var (
@@ -16,4 +18,13 @@ type SampleItem struct {
 	StartTime  time.Time `json:"start_time,omitempty"`
 	FinishTime time.Time `json:"finish_time,omitempty"`
 	Status     string    `json:"status,omitempty"`
+}
+
+type SomeProcessingTask struct {
+	SampleItem `json:"sample_item"`
+	TraceID    string `json:"trace_id"`
+}
+
+func (c *SampleItem) Expired() bool {
+	return c.FinishTime.Add(3*time.Minute).Unix() < v1.TimeNow().Unix()
 }

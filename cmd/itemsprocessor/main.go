@@ -59,6 +59,8 @@ func runItemsProcessorApplication(ctx context.Context) error {
 		if err != nil {
 			fmt.Printf("env.ShutdownJobs: %s", err.Error())
 		}
+		// stop items states dispatcher
+		itemsprocessor.StopDispatcher()
 	}(ctx, env)
 
 	itemsProcessorServer, err := itemsprocessor.NewServer(&cfg, env)

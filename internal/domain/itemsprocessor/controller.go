@@ -12,8 +12,8 @@ import (
 
 // Handler ...
 type Handler struct {
-	usecase  ItemsSampleProcessUsage
-	validate *validator.Validate
+	processor Processor
+	validate  *validator.Validate
 }
 
 // LivenessHandler to check api response
@@ -24,9 +24,9 @@ func (h *Handler) LivenessHandler() func(w http.ResponseWriter, r *http.Request)
 }
 
 // NewItemsHandler ...
-func NewItemsHandler(cmd ItemsSampleProcessUsage) *Handler {
+func NewItemsHandler(p Processor) *Handler {
 	return &Handler{
-		usecase:  cmd,
-		validate: validate.New(),
+		processor: p,
+		validate:  validate.New(),
 	}
 }

@@ -15,37 +15,40 @@ import (
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
-// ItemsSampleProcessUsage represents sample usage of sample domain
-type ItemsSampleProcessUsage interface {
+// Processor represents sample usage of sample domain
+type Processor interface {
 	Readiness() error
-	UpdateItem(ctx context.Context, m *model.SampleItem) error
+	UpdateItem(ctx context.Context, sip *model.SomeProcessingTask) error
 }
 
-// Items implements ItemsSampleProcessUsage
+// Items implements Processor
 type Items struct {
 	db  *datasource.SampleProcessorDB
 	rmq rabbitmq.AMQPPublisher
 }
 
 // UpdateItem ...
-func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
-	m.FinishTime = api.TimeNow()
-	err := i.db.UpdateStatusExampleTrx(ctx, m)
+func (i *Items) UpdateItem(ctx context.Context, proc *model.SomeProcessingTask) error {
+	proc.FinishTime = api.TimeNow()
+
+	err := i.db.UpdateStatusExampleTrx(ctx, &proc.SampleItem)
 	if err != nil {
 		return fmt.Errorf("remote update failed: %w", err)
 	}
 
-	dataBytes, err := json.Marshal(m)
+	dataBytes, err := json.Marshal(proc.SampleItem)
 	if err != nil {
 		return fmt.Errorf("json.marshal failed: %w", err)
 	}
 
 	// if item was deleted from processing publish it somewhere in another que
-	if m.Status == model.ItemDeleted {
+	if proc.Status == model.ItemDeleted {
 		return i.rmq.Publish(
 			ctx, exExchangeNameItems, exBindingKeyItemsReadiness,
 			amqp.Publishing{
-				Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+				Headers: map[string]interface{}{
+					"example-item-trace-id": fmt.Sprintf(api.ExampleItemsTracingFormat, proc.ID),
+				},
 				Timestamp: api.TimeNow(),
 				Body:      dataBytes,
 			})
@@ -55,7 +58,9 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 	return i.rmq.Publish(
 		ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
-			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+			Headers: map[string]interface{}{
+				"example-item-trace-id": fmt.Sprintf(api.ExampleItemsTracingFormat, proc.ID),
+			},
 			Timestamp: api.TimeNow(),
 			Body:      dataBytes,
 		})

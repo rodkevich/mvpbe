@@ -50,7 +50,9 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 
 	return i.rmq.Publish(ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
-			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+			Headers: map[string]interface{}{
+				"example-item-trace-id": fmt.Sprintf(api.ExampleItemsTracingFormat, m.ID),
+			},
 			Timestamp: api.TimeNow(),
 			Body:      dataBytes,
 		})
@@ -59,6 +61,7 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 // UpdateItem ...
 func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 	m.FinishTime = api.TimeNow()
+
 	err := i.db.UpdateStatusExampleTrx(ctx, m)
 	if err != nil {
 		return fmt.Errorf("remote update failed: %w", err)
@@ -71,7 +74,9 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 
 	return i.rmq.Publish(ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
-			Headers:   map[string]interface{}{"example-item-trace-id": m.ID},
+			Headers: map[string]interface{}{
+				"example-item-trace-id": fmt.Sprintf(api.ExampleItemsTracingFormat, m.ID),
+			},
 			Timestamp: api.TimeNow(),
 			Body:      dataBytes,
 		})
