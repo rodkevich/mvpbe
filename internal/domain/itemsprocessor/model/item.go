@@ -6,6 +6,8 @@ import (
 	v1 "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
+const undoRedoTimeout = 1 * time.Minute
+
 var (
 	ItemCreated  = "CREATED"
 	ItemPending  = "PENDING"
@@ -26,5 +28,5 @@ type SomeProcessingTask struct {
 }
 
 func (c *SampleItem) Expired() bool {
-	return c.FinishTime.Add(3*time.Minute).Unix() < v1.TimeNow().Unix()
+	return c.FinishTime.Add(undoRedoTimeout).Unix() < v1.TimeNow().Unix()
 }
