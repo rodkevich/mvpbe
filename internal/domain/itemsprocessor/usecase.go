@@ -90,7 +90,7 @@ func NewItemsDomain(ctx context.Context, repo *datasource.SampleProcessorDB, pbl
 }
 
 func configureExchanges(ch *amqp.Channel) {
-	log.Println("configuring rabbit ")
+	log.Println("Configuring rabbitmq ")
 	err := ch.ExchangeDeclare(exExchangeNameItems, exExchangeKindItems, true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("err := ch.ExchangeDeclare: ", err)

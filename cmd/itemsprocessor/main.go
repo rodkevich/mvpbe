@@ -34,7 +34,7 @@ func main() {
 		log.Println(err)
 	}
 
-	log.Println("successful itemsProcessor shutdown")
+	log.Println("Successful items processor shutdown")
 }
 
 func runItemsProcessorApplication(ctx context.Context) error {

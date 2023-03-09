@@ -46,7 +46,7 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 	ds := datasource.New(s.env.Database())
 	pbl := s.env.Publisher()
 
-	log.Println("configuring routes")
+	log.Println("Configuring routes")
 
 	items := NewItemsHandler(NewItemsDomain(ds, pbl))
 	r.Route("/api/v1/items", func(r chi.Router) {

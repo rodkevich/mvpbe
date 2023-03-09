@@ -32,7 +32,7 @@ type stateDispatcher struct {
 
 // StopDispatcher shut down the background cleanup
 func StopDispatcher() {
-	log.Println("Closing items state dispatcher.")
+	log.Println("Closing items states dispatcher.")
 	dispatcher.ticker.Stop()
 	dispatcher.stop <- true
 }
@@ -44,25 +44,26 @@ func (c *stateDispatcher) backgroundExpire() {
 			close(c.stop)
 			return
 		case t := <-c.ticker.C:
-			log.Println("background expire items with ticker.")
+			log.Println("[background] Running  expire check for items")
 
 			c.mark(t.UnixNano())
 		}
 	}
 }
 
-func (c *stateDispatcher) mark(t int64) {
+func (c *stateDispatcher) mark(_ int64) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-
-	log.Println("mark items state dispatcher.")
 
 	for k, v := range c.tasks {
 		name := k
 		for index, i := range v {
 			item := i
-			// if t > item.FinishTime.Unix() {
-			if item.Expired() {
+			if item.Status == model.ItemComplete && item.Expired() {
+				log.Printf(
+					"[background] Mark item states for deletition: name [%s], state [%s], time [%s] \n",
+					name, item.Status, item.FinishTime)
+
 				go c.purgeExpired(name, index, item.FinishTime.Unix())
 			}
 		}
@@ -72,9 +73,10 @@ func (c *stateDispatcher) mark(t int64) {
 func (c *stateDispatcher) purgeExpired(name string, p int, expectedExpiryTime int64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	log.Println("purge expired items by ticker.", name, p, expectedExpiryTime)
 
 	if items, ok := c.tasks[name]; ok && items[p].FinishTime.Unix() == expectedExpiryTime {
+		log.Println("[background] Purge expired items", name, p, expectedExpiryTime)
+
 		delete(c.tasks, name)
 	}
 }
@@ -113,8 +115,8 @@ func GetState(key string, index int) (*model.SampleItem, bool) {
 	return get(dispatcher, key, index)
 }
 
-// ClearStates remove all items
-func ClearStates() {
+// ClearDispatcherStates remove all items
+func ClearDispatcherStates() {
 	dispatcher.mu.Lock()
 	defer dispatcher.mu.Unlock()
 

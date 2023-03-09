@@ -34,14 +34,14 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh 
 							return errors.New("items channel closed")
 						}
 
-						log.Printf("Items consumer: id: %d, data: %s, headers: %#v", workerID, string(msg.Body), msg.Headers)
+						log.Printf("Consumer id: %d, data: %s, headers: %+v", workerID, string(msg.Body), msg.Headers)
 
 						task := &model.SomeProcessingTask{}
 
 						err := json.Unmarshal(msg.Body, &task.SampleItem)
 						if err != nil {
 							_ = msg.Reject(false)
-							log.Println("items consumer got error: json.unmarshal msg.body: ", err)
+							log.Println("items consumer error: json.unmarshal msg.body: ", err)
 						}
 
 						if headerValue, ok := msg.Headers["example-item-trace-id"].(string); ok {
@@ -49,8 +49,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh 
 
 							err = SaveState(task)
 							if err != nil {
-								log.Println("items consumer got error: sitter.SaveState: ", err)
-								break
+								log.Println("items consumer error: SaveState: ", err)
 							}
 						}
 
@@ -59,18 +58,18 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh 
 
 						switch task.Status {
 						case model.ItemCreated:
-							time.Sleep(fakeJobTime)
+							time.Sleep(8 * time.Second)
 
 							task.Status = model.ItemPending
 							err = itemsUsage.UpdateItem(ctx, task)
 							if err != nil {
-								log.Println("items consumer got error: case: ItemCreated: UpdateItem: ", err)
+								log.Println("items consumer error: case: ItemCreated: UpdateItem: ", err)
 								_ = msg.Nack(false, true)
 							}
 
 							err = msg.Ack(false)
 							if err != nil {
-								log.Println("items consumer got error: case: ItemCreated: msg.Ack: ", err)
+								log.Println("items consumer error: case: ItemCreated: msg.Ack: ", err)
 							}
 
 						case model.ItemPending:
@@ -79,13 +78,13 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh 
 							task.Status = model.ItemComplete
 							err = itemsUsage.UpdateItem(ctx, task)
 							if err != nil {
-								log.Println("items consumer got error: case: ItemPending: UpdateItem: ", err)
+								log.Println("items consumer error: case: ItemPending: UpdateItem: ", err)
 								_ = msg.Nack(false, true)
 							}
 
 							err = msg.Ack(false)
 							if err != nil {
-								log.Println("items consumer got error: case: ItemPending: msg.Ack: ", err)
+								log.Println("items consumer error: case: ItemPending: msg.Ack: ", err)
 							}
 
 						case model.ItemComplete:
@@ -94,23 +93,22 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, itemsCh 
 							task.Status = model.ItemDeleted
 							err = itemsUsage.UpdateItem(ctx, task)
 							if err != nil {
-								log.Println("items consumer got error: case: ItemComplete: UpdateItem: ", err)
+								log.Println("items consumer error: case: ItemComplete: UpdateItem: ", err)
 								_ = msg.Nack(false, true)
 							}
 
 							err = msg.Ack(false)
 							if err != nil {
-								log.Println("items consumer got error: case: ItemComplete: msg.Ack: ", err)
+								log.Println("items consumer error: case: ItemComplete: msg.Ack: ", err)
 							}
 
-							println("states length: ", StatesLength())
-							println("states length for id: ", task.TraceID, StatesLengthByID(task.TraceID))
+							log.Printf("Total items having saved states: %d Item id [%s] saved states: %d", StatesLength(), task.TraceID, StatesLengthByID(task.TraceID))
 
 						case model.ItemDeleted:
 							// shouldn't appear here anymore // todo remove after 'deleted' worker is done and tested
 							err := msg.Nack(false, true)
 							if err != nil {
-								log.Println("items consumer got error: case: deleted item: msg.Nack: ", err)
+								log.Println("items consumer error: case: deleted item: msg.Nack: ", err)
 							}
 						default:
 							// return to que
