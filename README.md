@@ -34,3 +34,10 @@ To update items in db use PUT method like:
     curl -X PUT -v --location "http://localhost:8080/api/v1/items/450" \
     -H "Content-Type: application/json" \
     -d "{\"status\": \"CREATED\"}"
+
+#### Once app is correctly setup, after item create request, you should see log like this:
+
+    curl -X POST -v --location "http://localhost:8080/api/v1/items"
+
+
+![alt text](docs/img_processing_example.png)
