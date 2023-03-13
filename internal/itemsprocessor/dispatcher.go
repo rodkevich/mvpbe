@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/model"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor/model"
 )
 
 func init() {
+	// dispatchers Stop() is deferred from main goroutine
 	go dispatcher.backgroundExpire()
 }
 
@@ -93,9 +94,9 @@ func (sd *stateDispatcher) mark(_ int64) {
 			item := i
 			if item.Status == model.ItemComplete && item.Expired() {
 				log.Printf(
-					"[background] Mark item states for deletition: name [%s], state [%s], time [%s] \n",
-					key, item.Status, item.FinishTime)
-
+					"[background] Mark item states for deletition: name [%s], state [%s], time [%s]\n",
+					key, item.Status, item.FinishTime,
+				)
 				go sd.purgeExpired(key, index, item.FinishTime.Unix())
 			}
 		}
@@ -107,7 +108,7 @@ func (sd *stateDispatcher) purgeExpired(key string, index int, time int64) {
 	defer sd.mu.Unlock()
 
 	if items, ok := sd.tasks[key]; ok && items[index].FinishTime.Unix() == time {
-		log.Println("[background] Purge expired items", key, index, time)
+		log.Println("[background] Purge expired item states, key:", key)
 
 		delete(sd.tasks, key)
 	}
@@ -125,7 +126,7 @@ func get(sd *stateDispatcher, key string, index int) (*model.SampleItem, bool) {
 	sd.mu.RLock()
 	defer sd.mu.RUnlock()
 
-	if v, ok := sd.tasks[key]; ok {
+	if v, ok := sd.tasks[key]; ok && len(v) > index {
 		return v[index], true
 	}
 	return nil, false

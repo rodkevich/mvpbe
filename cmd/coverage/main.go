@@ -13,7 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/rodkevich/mvpbe/internal/domain/coverage"
+	"github.com/rodkevich/mvpbe/internal/coverage"
 	"github.com/rodkevich/mvpbe/internal/server"
 	"github.com/rodkevich/mvpbe/internal/setup"
 )

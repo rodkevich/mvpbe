@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	v1 "github.com/rodkevich/mvpbe/pkg/api/v1"
+	api "github.com/rodkevich/mvpbe/pkg/api/v1"
 )
 
 const undoRedoTimeout = 1 * time.Minute
@@ -28,5 +28,5 @@ type SomeProcessingTask struct {
 }
 
 func (c *SampleItem) Expired() bool {
-	return c.FinishTime.Add(undoRedoTimeout).Unix() < v1.TimeNow().Unix()
+	return c.FinishTime.Add(undoRedoTimeout).Unix() < api.TimeNow().Unix()
 }

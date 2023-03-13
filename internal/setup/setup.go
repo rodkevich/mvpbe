@@ -47,7 +47,7 @@ func NewEnvSetup(ctx context.Context, cfg interface{}) (*server.Env, error) {
 		conf := provider.AMQPConfig()
 		rmq, err := rabbitmq.NewPublisher(conf)
 		if err != nil {
-			return nil, fmt.Errorf("unable to connect to rabbit: %w", err)
+			return nil, fmt.Errorf("unable to connect to rabbitmq: %w", err)
 		}
 
 		serverEnvOpts = append(serverEnvOpts, server.WithAMQP(rmq))

@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/model"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor/model"
 	"github.com/rodkevich/mvpbe/pkg/database"
 )
 

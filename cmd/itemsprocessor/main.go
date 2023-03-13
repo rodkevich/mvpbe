@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor"
 	"github.com/rodkevich/mvpbe/internal/server"
 	"github.com/rodkevich/mvpbe/internal/setup"
 )
@@ -72,6 +72,9 @@ func runItemsProcessorApplication(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("server.New: %w", err)
 	}
+
+	// configure rabbitmq exchange
+	itemsProcessorServer.ConfigureExchange()
 
 	log.Println("server listening", "port", cfg.HTTP.Port)
 	return srv.ServeHTTPHandler(ctx, itemsProcessorServer.Routes(ctx))

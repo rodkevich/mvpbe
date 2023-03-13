@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer"
+	"github.com/rodkevich/mvpbe/internal/itemsproducer"
 	"github.com/rodkevich/mvpbe/internal/server"
 	"github.com/rodkevich/mvpbe/internal/setup"
 )
@@ -28,7 +28,7 @@ func main() {
 	}()
 
 	// run app
-	err := runSampleApplication(ctx)
+	err := runItemsProducerApplication(ctx)
 	done()
 	if err != nil {
 		log.Println(err)
@@ -37,7 +37,7 @@ func main() {
 	log.Println("successful application shutdown")
 }
 
-func runSampleApplication(ctx context.Context) error {
+func runItemsProducerApplication(ctx context.Context) error {
 	// init config
 	err := godotenv.Load()
 	if err != nil {

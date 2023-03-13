@@ -7,8 +7,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/datasource"
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/model"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor/datasource"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor/model"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
@@ -40,7 +40,7 @@ func (i *Items) UpdateItem(ctx context.Context, proc *model.SomeProcessingTask) 
 		return fmt.Errorf("json.marshal failed: %w", err)
 	}
 
-	// if item was deleted from processing publish it somewhere in another que
+	// if item was deleted from processing publish it somewhere to another que
 	if proc.Status == model.ItemDeleted {
 		return i.rmq.Publish(
 			ctx, exExchangeName, exBindingKeyItemsReadiness,

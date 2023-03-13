@@ -10,7 +10,7 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/model"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor/model"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 )
 
@@ -75,7 +75,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, pub rabb
 
 							err = itemsUsage.UpdateItem(ctx, task)
 							if err != nil {
-								log.Println("items consumer error: case: ItemCreated: UpdateItem: ", err)
+								log.Println("items consumer error: case: ItemCreated: UpdateOne: ", err)
 								_ = msg.Nack(false, true)
 							}
 
@@ -89,7 +89,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, pub rabb
 
 							err = itemsUsage.UpdateItem(ctx, task)
 							if err != nil {
-								log.Println("items consumer error: case: ItemPending: UpdateItem: ", err)
+								log.Println("items consumer error: case: ItemPending: UpdateOne: ", err)
 								_ = msg.Nack(false, true)
 							}
 
@@ -103,7 +103,7 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, pub rabb
 
 							err = itemsUsage.UpdateItem(ctx, task)
 							if err != nil {
-								log.Println("items consumer error: case: ItemComplete: UpdateItem: ", err)
+								log.Println("items consumer error: case: ItemComplete: UpdateOne: ", err)
 								_ = msg.Nack(false, true)
 							}
 
@@ -112,8 +112,10 @@ func runExampleItemsConsumer(ctx context.Context, itemsUsage Processor, pub rabb
 								log.Println("items consumer error: case: ItemComplete: msg.Ack: ", err)
 							}
 
-							log.Printf("Total items having saved states: %d Item id [%s] saved states: %d",
-								StatesLength(), task.TraceID, StatesLengthByID(task.TraceID))
+							log.Printf(
+								"Total items having saved states: %d Item id [%s] saved states: %d",
+								StatesLength(), task.TraceID, StatesLengthByID(task.TraceID),
+							)
 
 						default:
 							// return to que

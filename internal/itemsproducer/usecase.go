@@ -7,8 +7,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer/datasource"
-	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer/model"
+	"github.com/rodkevich/mvpbe/internal/itemsproducer/datasource"
+	"github.com/rodkevich/mvpbe/internal/itemsproducer/model"
 	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
@@ -20,10 +20,10 @@ import (
 type ItemsSampleUsage interface {
 	Readiness() error
 	AllDatabases(ctx context.Context) ([]string, error)
-	AddItem(ctx context.Context, m *model.SampleItem) error
-	UpdateItem(ctx context.Context, m *model.SampleItem) error
-	GetItem(ctx context.Context, id int) (*model.SampleItem, error)
-	ListItems(ctx context.Context) ([]*model.SampleItem, error)
+	AddOne(ctx context.Context, m *model.SampleItem) error
+	UpdateOne(ctx context.Context, m *model.SampleItem) error
+	GetOne(ctx context.Context, id int) (*model.SampleItem, error)
+	List(ctx context.Context) ([]*model.SampleItem, error)
 }
 
 // Items implements ItemsSampleUsage
@@ -32,8 +32,8 @@ type Items struct {
 	rmq rabbitmq.AMQPPublisher
 }
 
-// AddItem ...
-func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
+// AddOne ...
+func (i *Items) AddOne(ctx context.Context, m *model.SampleItem) error {
 	m.StartTime = api.TimeNow()
 	m.FinishTime = api.TimeNow()
 	m.Status = model.ItemCreated
@@ -41,6 +41,12 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 	err := i.db.AddItemExampleTrx(ctx, m)
 	if err != nil {
 		return fmt.Errorf("remote add failed: %w", err)
+	}
+
+	// return if no need to publish
+	// for auto delivery into processing
+	if m.ManualProc {
+		return nil
 	}
 
 	dataBytes, err := json.Marshal(m)
@@ -58,8 +64,8 @@ func (i *Items) AddItem(ctx context.Context, m *model.SampleItem) error {
 		})
 }
 
-// UpdateItem ...
-func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
+// UpdateOne ...
+func (i *Items) UpdateOne(ctx context.Context, m *model.SampleItem) error {
 	m.FinishTime = api.TimeNow()
 
 	err := i.db.UpdateStatusExampleTrx(ctx, m)
@@ -72,6 +78,12 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 		return fmt.Errorf("json.marshal failed: %w", err)
 	}
 
+	// return if no need to publish
+	// for auto delivery into processing
+	if m.ManualProc {
+		return nil
+	}
+
 	return i.rmq.Publish(ctx, exExchangeNameItems, exBindingKeyItems,
 		amqp.Publishing{
 			Headers: map[string]interface{}{
@@ -82,8 +94,8 @@ func (i *Items) UpdateItem(ctx context.Context, m *model.SampleItem) error {
 		})
 }
 
-// GetItem ...
-func (i *Items) GetItem(ctx context.Context, id int) (*model.SampleItem, error) {
+// GetOne ...
+func (i *Items) GetOne(ctx context.Context, id int) (*model.SampleItem, error) {
 	example, err := i.db.GetItemExample(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("remote get failed: %w", err)
@@ -95,8 +107,8 @@ func (i *Items) GetItem(ctx context.Context, id int) (*model.SampleItem, error) 
 	return example, nil
 }
 
-// ListItems ...
-func (i *Items) ListItems(ctx context.Context) ([]*model.SampleItem, error) {
+// List ...
+func (i *Items) List(ctx context.Context) ([]*model.SampleItem, error) {
 	// TODO implement me
 	panic("implement me")
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer/model"
+	"github.com/rodkevich/mvpbe/internal/itemsproducer/model"
 	"github.com/rodkevich/mvpbe/pkg/validate"
 
 	api "github.com/rodkevich/mvpbe/pkg/api/v1"
@@ -17,14 +17,14 @@ import (
 
 // Handler ...
 type Handler struct {
-	usecase  ItemsSampleUsage
+	items    ItemsSampleUsage
 	validate *validator.Validate
 }
 
 // NewItemsHandler ...
 func NewItemsHandler(cmd ItemsSampleUsage) *Handler {
 	return &Handler{
-		usecase:  cmd,
+		items:    cmd,
 		validate: validate.New(),
 	}
 }
@@ -45,15 +45,16 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		item, err := h.usecase.GetItem(r.Context(), itemID)
+		item, err := h.items.GetOne(r.Context(), itemID)
 		if err != nil {
 			if errors.Is(err, errDeletedItem) {
 				api.Error(w, http.StatusNotFound, http.StatusText(http.StatusNotFound))
-				log.Printf("got request for deleted item")
+				log.Printf("deleted item requested")
 				return
 			}
+
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			log.Println("usecase.GetItem error:", err)
+			log.Println("usecase.GetOne error:", err)
 			return
 		}
 
@@ -68,11 +69,24 @@ func (h *Handler) GetItemHandler() func(w http.ResponseWriter, r *http.Request) 
 // CreateItemHandler creates new model.SampleItem
 func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		item := &model.SampleItem{}
-		err := h.usecase.AddItem(r.Context(), item)
+		itemRequest := &api.SampleItemRequest{}
+
+		err := itemRequest.Bind(r.Body)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Println("itemRequest.Bind error: ", err)
+			return
+		}
+
+		item := &model.SampleItem{
+			Status:     itemRequest.Status,
+			ManualProc: itemRequest.ManualDelivery,
+		}
+
+		err = h.items.AddOne(r.Context(), item)
 		if err != nil {
 			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			log.Println("usecase.AddItem error:", err)
+			log.Println("usecase.AddOne error:", err)
 			return
 		}
 
@@ -87,28 +101,28 @@ func (h *Handler) CreateItemHandler() func(w http.ResponseWriter, r *http.Reques
 // UpdateItemHandler updates model.SampleItem
 func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		i := chi.URLParam(r, "itemID")
-		if i == "" {
-			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			return
-		}
-
-		id, err := strconv.Atoi(i)
-		if err != nil {
-			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			log.Println("strconv.Atoi error: ", err)
-			return
-		}
-
 		itemRequest := &api.SampleItemRequest{}
-		err = itemRequest.Bind(r.Body)
+
+		err := itemRequest.Bind(r.Body)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 			log.Println("itemRequest.Bind error: ", err)
 			return
 		}
 
-		itemRequest.ID = id
+		paramID := chi.URLParam(r, "itemID")
+		if paramID == "" {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			return
+		}
+
+		itemRequest.ID, err = strconv.Atoi(paramID)
+		if err != nil {
+			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+			log.Println("strconv.Atoi error: ", err)
+			return
+		}
+
 		err = h.validate.Struct(itemRequest)
 		if err != nil {
 			api.Error(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
@@ -116,13 +130,16 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		item := &model.SampleItem{}
-		item.ID = itemRequest.ID
-		item.Status = itemRequest.Status
-		err = h.usecase.UpdateItem(r.Context(), item)
+		item := &model.SampleItem{
+			ID:         itemRequest.ID,
+			Status:     itemRequest.Status,
+			ManualProc: itemRequest.ManualDelivery,
+		}
+
+		err = h.items.UpdateOne(r.Context(), item)
 		if err != nil {
-			api.Error(w, http.StatusInternalServerError, err.Error())
-			log.Println("usecase.UpdateItem error: ", err)
+			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			log.Println("usecase.UpdateOne error: ", err)
 			return
 		}
 
@@ -133,16 +150,18 @@ func (h *Handler) UpdateItemHandler() func(w http.ResponseWriter, r *http.Reques
 // AllDatabases sample handler to get with all db names
 func (h *Handler) AllDatabases() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data, err := h.usecase.AllDatabases(r.Context())
+		data, err := h.items.AllDatabases(r.Context())
 		if err != nil {
-			api.Error(w, http.StatusInternalServerError, err.Error())
+			api.Error(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			log.Println("usecase.AllDatabases error: ", err)
 			return
 		}
+
 		resp := api.ResponseBase{
 			Data: data,
 			Meta: api.MetaData{Size: len(data), Total: len(data)},
 		}
+
 		api.RenderJSON(w, http.StatusOK, resp)
 	}
 }

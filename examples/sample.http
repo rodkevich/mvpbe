@@ -45,6 +45,9 @@ client.test("Headers option exists", function() {
 
 ### Check create item response
 POST http://localhost:{{http_port_producer}}/api/v1/items
+Content-Type: application/json
+
+{"manual_delivery": false}
 
 > {%
 client.test("Request executed successfully", function() {

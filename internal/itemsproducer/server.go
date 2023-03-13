@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsproducer/datasource"
+	"github.com/rodkevich/mvpbe/internal/itemsproducer/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
 )

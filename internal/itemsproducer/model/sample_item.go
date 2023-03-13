@@ -16,4 +16,5 @@ type SampleItem struct {
 	StartTime  time.Time `json:"start_time,omitempty"`
 	FinishTime time.Time `json:"finish_time,omitempty"`
 	Status     string    `json:"status,omitempty"`
+	ManualProc bool      `json:"manual_proc"`
 }

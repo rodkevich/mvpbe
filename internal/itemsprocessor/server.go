@@ -9,10 +9,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/rodkevich/mvpbe/internal/domain/itemsprocessor/datasource"
+	"github.com/rodkevich/mvpbe/internal/itemsprocessor/datasource"
 	"github.com/rodkevich/mvpbe/internal/middlewares"
 	"github.com/rodkevich/mvpbe/internal/server"
-	"github.com/rodkevich/mvpbe/pkg/rabbitmq"
 )
 
 // Server representation
@@ -47,11 +46,10 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 
 	r.Mount("/debug", middleware.Profiler())
 
-	configureExchange(s.env.Publisher())
 	ds := datasource.New(s.env.Database())
 	itemsUsage := NewItemsDomain(ds, s.env.Publisher())
 
-	go runExampleItemsConsumer(ctx, itemsUsage, s.env.Publisher())
+	runExampleItemsConsumer(ctx, itemsUsage, s.env.Publisher())
 
 	handler := NewItemsHandler(itemsUsage)
 	r.Route("/api/v1/items", func(r chi.Router) {
@@ -62,9 +60,10 @@ func (s *Server) Routes(ctx context.Context) *chi.Mux {
 	return r
 }
 
-func configureExchange(pub rabbitmq.AMQPPublisher) {
+func (s *Server) ConfigureExchange() {
 	log.Println("Configuring rabbitmq")
-	channel := pub.GetChannel()
+	channel := s.env.Publisher().GetChannel()
+
 	err := channel.ExchangeDeclare(exExchangeName, exExchangeKind, true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("err := ch.ExchangeDeclare: ", err)
@@ -75,12 +74,12 @@ func configureExchange(pub rabbitmq.AMQPPublisher) {
 		exQueueNameProcess: exBindingKeyItemsProcessing,
 		exQueueNameResults: exBindingKeyItemsReadiness,
 	} {
-		q, err := channel.QueueDeclare(k, true, false, false, false, nil)
+		que, err := channel.QueueDeclare(k, true, false, false, false, nil)
 		if err != nil {
 			log.Fatal("err := ch.QueueDeclare: ", err)
 		}
 
-		err = channel.QueueBind(q.Name, v, exExchangeName, false, nil)
+		err = channel.QueueBind(que.Name, v, exExchangeName, false, nil)
 		if err != nil {
 			log.Fatal("err := ch.QueueBind: ", err)
 		}
