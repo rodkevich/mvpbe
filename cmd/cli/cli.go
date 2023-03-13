@@ -14,8 +14,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
-
 	println("connected to:", getenv)
 
 	ch, err := conn.Channel()
@@ -25,6 +23,7 @@ func main() {
 
 	if len(os.Args) < 2 {
 		log.Printf("Usage: %s [que_name]...", os.Args[0])
+		_ = conn.Close()
 		os.Exit(1)
 	}
 
@@ -38,6 +37,7 @@ func main() {
 		nil,        // args
 	)
 	if err != nil {
+		_ = conn.Close()
 		log.Fatal(err)
 	}
 
