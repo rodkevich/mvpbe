@@ -7,8 +7,9 @@ import (
 )
 
 type SampleItemRequest struct {
-	ID     int    `json:"id,omitempty"  validate:"required"`
-	Status string `json:"status,omitempty" validate:"required"`
+	ID             int    `json:"id,omitempty"  validate:"required"`
+	Status         string `json:"status,omitempty" validate:"required"`
+	ManualDelivery bool   `json:"manual_delivery,omitempty"`
 }
 
 func (i *SampleItemRequest) Bind(body io.ReadCloser) error {
